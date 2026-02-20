@@ -31,12 +31,12 @@
 }
 
 .btn-primary {
-  background: var(--accent);
-  color: var(--bg-dark);
+  background: #6366f1;
+  color: white;
 }
 
 .btn-primary:hover {
-  background: var(--accent-hover);
+  background: #818cf8;
 }
 
 .btn-cancel {
