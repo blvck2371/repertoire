@@ -23,30 +23,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Configurer Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
-      - name: Install backend dependencies
+      - name: Installation des dépendances backend
         run: cd backend && npm ci
 
       - name: Lint backend
         run: cd backend && npm run lint
 
-      - name: Test backend
+      - name: Tests backend
         run: cd backend && npm run test
         env:
           MONGODB_URI: mongodb://localhost:27017/repertoire_test
 
-      - name: Install frontend dependencies
+      - name: Installation des dépendances frontend
         run: cd frontend && npm ci
 
       - name: Lint frontend
         run: cd frontend && npm run lint
 
-      - name: Test frontend
+      - name: Tests frontend
         run: cd frontend && npm run test
 
   build-docker:
@@ -56,10 +55,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
+      - name: Configurer Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build backend image
+      - name: Construction de l'image backend
         uses: docker/build-push-action@v5
         with:
           context: ./backend
@@ -69,7 +68,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build frontend image
+      - name: Construction de l'image frontend
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
@@ -86,12 +85,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Start application
+      - name: Démarrage de l'application
         run: docker compose up -d --build
         env:
           COMPOSE_PROJECT_NAME: repertoire-ci
 
-      - name: Wait for app
+      - name: Attente du démarrage
         run: |
           echo "Attente du démarrage de l'application..."
           for i in $(seq 1 60); do
@@ -104,13 +103,13 @@ jobs:
           echo "Timeout - application non disponible"
           exit 1
 
-      - name: Install Playwright
+      - name: Installation de Playwright
         run: npm ci && npx playwright install --with-deps chromium
 
-      - name: Run E2E tests
+      - name: Exécution des tests E2E
         run: npm run e2e
 
-      - name: Stop application
+      - name: Arrêt de l'application
         if: always()
         run: docker compose --project-name repertoire-ci down -v
 
@@ -121,20 +120,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build backend for Trivy
+      - name: Construction backend pour Trivy
         run: docker build -t repertoire-backend:scan ./backend
 
-      - name: Run Trivy scan backend
+      - name: Scan Trivy backend
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'repertoire-backend:scan'
           format: 'table'
           exit-code: '0'
 
-      - name: Build frontend for Trivy
+      - name: Construction frontend pour Trivy
         run: docker build -t repertoire-frontend:scan ./frontend
 
-      - name: Run Trivy scan frontend
+      - name: Scan Trivy frontend
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'repertoire-frontend:scan'
