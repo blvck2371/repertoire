@@ -258,6 +258,7 @@ docker system prune -f
 |----------|---------|
 | [DEPLOIEMENT-DROPLET.md](DEPLOIEMENT-DROPLET.md) | Création et configuration du Droplet |
 | [PHASE-4-HARBOR.md](PHASE-4-HARBOR.md) | Registry Harbor, certificat CA, scan vulnérabilités |
+| [PHASE-5-KUBERNETES.md](PHASE-5-KUBERNETES.md) | Traefik Ingress, HPA, Helm Charts |
 | [VAULT.md](VAULT.md) | Gestion des secrets avec Vault |
 | [MONITORING-GUIDE.md](MONITORING-GUIDE.md) | Prometheus, Grafana, Kibana |
 | [GRAFANA-SETUP.md](GRAFANA-SETUP.md) | Configuration des tableaux de bord |

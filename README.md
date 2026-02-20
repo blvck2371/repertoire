@@ -40,9 +40,9 @@
 - [x] MongoDB en StatefulSet
 - [x] Backend & Frontend en Deployment
 - [x] Service LoadBalancer pour accès externe
-- [ ] Traefik Ingress Controller (optionnel)
-- [ ] Autoscaling HPA
-- [ ] Helm Charts pour packaging
+- [x] Traefik Ingress Controller (optionnel)
+- [x] Autoscaling HPA
+- [x] Helm Charts pour packaging
 
 ### PHASE 6 – Gestion des secrets (Vault)
 - [x] Installation Vault (mode dev, Docker Compose)
@@ -105,6 +105,8 @@ Voir [docs/PHASE-4-HARBOR.md](docs/PHASE-4-HARBOR.md) — installation, configur
 
 **Option cloud (DigitalOcean) :** avec `ENABLE_HARBOR=true` et `ENABLE_KUBERNETES=true`, le CD déploie automatiquement. Récupérer l'IP : `kubectl get svc frontend -n dev`
 
+**Phase 5 (Traefik, HPA, Helm) :** voir [docs/PHASE-5-KUBERNETES.md](docs/PHASE-5-KUBERNETES.md)
+
 ### Sur DigitalOcean Droplet (économique, ~6 $/mois)
 Voir [docs/DEPLOIEMENT-DROPLET.md](docs/DEPLOIEMENT-DROPLET.md)
 
@@ -132,7 +134,7 @@ npm run version:major   # 1.0.0 → 2.0.0 (breaking changes)
 
 - **Branche active :** develop
 - **Version :** v1.0.1
-- **Dernière étape réalisée :** Phase 4 (Registry Harbor) + Phase 7 (Monitoring)
+- **Dernière étape réalisée :** Phase 5 (Kubernetes : Traefik, HPA, Helm)
 
 ---
 

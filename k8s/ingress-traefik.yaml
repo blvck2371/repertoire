@@ -1,0 +1,24 @@
+# Ingress Traefik - route le trafic vers le frontend
+# Prérequis : Traefik installé (voir docs/PHASE-5-KUBERNETES.md)
+# Usage : kubectl apply -n dev -f k8s/ingress-traefik.yaml
+# Adapter le host dans values ou via sed selon ton domaine
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: repertoire-ingress
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  ingressClassName: traefik
+  rules:
+    # host: accepter tout trafic (IP ou domaine)
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80

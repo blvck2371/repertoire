@@ -28,6 +28,9 @@ Par défaut, le CD **build** les images uniquement. Pour activer Harbor et Kuber
 
 **Note :** Pour le déploiement Kubernetes, `ENABLE_HARBOR` et `ENABLE_KUBERNETES` doivent être à `true`.
 
+Variables optionnelles K8s (Phase 5) :
+- `ENABLE_K8S_INGRESS` = `true` — applique l'Ingress Traefik (nécessite Traefik installé)
+
 ### Déploiement Droplet (économique)
 
 Variables : `ENABLE_DROPLET` = `true`

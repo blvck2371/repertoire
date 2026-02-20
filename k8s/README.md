@@ -5,6 +5,13 @@
 - Cluster Kubernetes (DigitalOcean, GKE, etc.)
 - Images poussées dans le registry (backend:tag, frontend:tag)
 
+## Options de déploiement
+
+| Méthode | Fichiers | Usage |
+|---------|----------|-------|
+| **Manifests bruts** | k8s/*.yaml | `kubectl apply -n dev -f k8s/` |
+| **Helm** | helm/repertoire/ | `helm install repertoire ./helm/repertoire -n dev` |
+
 ## Configuration
 
 ### 1. Créer le secret pour le registry (DigitalOcean)

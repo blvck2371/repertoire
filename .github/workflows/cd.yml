@@ -162,6 +162,8 @@ jobs:
           sed -e "s|REGISTRY_URL|$REGISTRY|g" -e "s|IMAGE_TAG|$TAG|g" k8s/backend-deployment.yaml | kubectl apply -n $NS -f -
           sed -e "s|REGISTRY_URL|$REGISTRY|g" -e "s|IMAGE_TAG|$TAG|g" k8s/frontend-deployment.yaml | kubectl apply -n $NS -f -
           kubectl apply -n $NS -f k8s/mongodb-statefulset.yaml
+          kubectl apply -n $NS -f k8s/hpa.yaml
+          [ "${{ vars.ENABLE_K8S_INGRESS }}" = "true" ] && kubectl apply -n $NS -f k8s/ingress-traefik.yaml || true
           echo "✅ Déploiement terminé dans le namespace $NS"
 
   deploy-droplet:

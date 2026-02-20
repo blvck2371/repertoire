@@ -1,0 +1,14 @@
+apiVersion: v2
+name: repertoire
+description: Répertoire Téléphonique - Backend API, Frontend React, MongoDB
+type: application
+version: 0.1.0
+appVersion: "1.0.1"
+keywords:
+  - repertoire
+  - crud
+  - backend
+  - frontend
+  - mongodb
+maintainers:
+  - name: Repertoire Team

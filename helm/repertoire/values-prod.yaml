@@ -1,0 +1,14 @@
+# Valeurs pour l'environnement prod
+imageTag: v1.0.1
+backend:
+  replicas: 2
+frontend:
+  replicas: 2
+hpa:
+  enabled: true
+  backend:
+    minReplicas: 2
+    maxReplicas: 10
+  frontend:
+    minReplicas: 2
+    maxReplicas: 10
