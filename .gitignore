@@ -26,6 +26,9 @@ Thumbs.db
 # Docker
 *.log
 
+# Harbor (installé sur le serveur, pas versionné)
+harbor/
+
 # Playwright
 /test-results/
 /playwright-report/

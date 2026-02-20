@@ -16,14 +16,26 @@ Ce guide permet d'installer Harbor sur le **même Droplet** que l'application, s
 
 ## 1. Télécharger Harbor
 
+**Option A – Installation automatique (recommandé) :**
+
+```bash
+cd /root/repertoire
+wget https://github.com/goharbor/harbor/releases/download/v2.11.0/harbor-offline-installer-v2.11.0.tgz
+mkdir -p harbor && tar xzf harbor-offline-installer-v2.11.0.tgz -C harbor --strip-components=1
+chmod +x scripts/harbor-install.sh
+./scripts/harbor-install.sh 165.22.171.147
+```
+
+Le script génère les certificats, configure `harbor.yml` et lance l’installation.
+
+**Option B – Installation manuelle :**
+
 ```bash
 cd /root
 wget https://github.com/goharbor/harbor/releases/download/v2.11.0/harbor-offline-installer-v2.11.0.tgz
 tar xzf harbor-offline-installer-v2.11.0.tgz
-cd harbor   # ou cd /root/harbor
+cd harbor
 ```
-
-**Note :** Si tu as extrait Harbor ailleurs (ex. `/root/repertoire/harbor`), adapte le chemin : `cd /root/repertoire/harbor`
 
 ---
 
@@ -129,6 +141,10 @@ ENABLE_HARBOR_CA_CERT = true
 
 **Obtenir le certificat en base64 :**
 ```bash
+# Si Harbor est dans /root/repertoire/harbor :
+base64 -w 0 /root/repertoire/harbor/certs/server.crt
+
+# Si Harbor est dans /root/harbor :
 base64 -w 0 /root/harbor/certs/server.crt
 ```
 
@@ -172,20 +188,20 @@ docker ps | grep repertoire
 Vérifier les logs :
 
 ```bash
-cd /root/harbor
+cd /root/repertoire/harbor   # ou cd /root/harbor
 docker compose logs
 ```
 
 ### Arrêter Harbor
 
 ```bash
-cd /root/harbor
+cd /root/repertoire/harbor   # ou cd /root/harbor
 docker compose down
 ```
 
 ### Redémarrer Harbor
 
 ```bash
-cd /root/harbor
+cd /root/repertoire/harbor   # ou cd /root/harbor
 docker compose up -d
 ```
