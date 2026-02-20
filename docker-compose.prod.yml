@@ -1,0 +1,36 @@
+# Pour déploiement production (Droplet) - frontend sur port 80
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: repertoire-mongodb
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: always
+
+  backend:
+    build: ./backend
+    container_name: repertoire-backend
+    ports:
+      - "127.0.0.1:3001:3001"
+    environment:
+      - PORT=3001
+      - MONGODB_URI=mongodb://mongodb:27017/repertoire
+    depends_on:
+      - mongodb
+    restart: always
+
+  frontend:
+    build: ./frontend
+    container_name: repertoire-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  mongodb_data:

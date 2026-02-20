@@ -90,6 +90,9 @@ docker compose up -d
 
 **Option cloud (DigitalOcean) :** avec `ENABLE_HARBOR=true` et `ENABLE_KUBERNETES=true`, le CD déploie automatiquement. Récupérer l'IP : `kubectl get svc frontend -n dev`
 
+### Sur DigitalOcean Droplet (économique, ~6 $/mois)
+Voir [docs/DEPLOIEMENT-DROPLET.md](docs/DEPLOIEMENT-DROPLET.md)
+
 ---
 
 ## 📌 Versioning
