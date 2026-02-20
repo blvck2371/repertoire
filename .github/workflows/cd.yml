@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set image tag
+      - name: Définir le tag d'image
         id: tag
         run: |
           if [ "${{ github.ref }}" = "refs/heads/develop" ]; then
@@ -25,10 +25,10 @@ jobs:
             echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Set up Docker Buildx
+      - name: Configurer Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build backend image
+      - name: Construction de l'image backend
         uses: docker/build-push-action@v5
         with:
           context: ./backend
@@ -38,7 +38,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build frontend image
+      - name: Construction de l'image frontend
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
@@ -55,7 +55,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set image tag
+      - name: Définir le tag d'image
         id: tag
         run: |
           if [ "${{ github.ref }}" = "refs/heads/develop" ]; then
@@ -67,28 +67,27 @@ jobs:
             echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Set registry domain
+      - name: Configurer le registry
         id: registry
         run: |
-          # DigitalOcean: registry.digitalocean.com/repertoire-registry
-          # Harbor: harbor.example.com
-          # On extrait le domaine pour le login (partie avant le premier /)
+          # Plan 1 repo : on utilise un seul dépôt avec des tags backend-* et frontend-*
           REGISTRY_URL="${{ secrets.HARBOR_URL }}"
           REGISTRY_DOMAIN=$(echo "$REGISTRY_URL" | cut -d'/' -f1)
           echo "domain=$REGISTRY_DOMAIN" >> $GITHUB_OUTPUT
           echo "full=$REGISTRY_URL" >> $GITHUB_OUTPUT
 
-      - name: Set up Docker Buildx
+      - name: Configurer Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Container Registry
+      - name: Connexion au registry
         uses: docker/login-action@v3
         with:
           registry: ${{ steps.registry.outputs.domain }}
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
 
-      - name: Build and push backend
+      # Plan 1 dépôt : backend et frontend dans le même dépôt avec des tags différents
+      - name: Construction et envoi du backend
         uses: docker/build-push-action@v5
         with:
           context: ./backend
@@ -97,12 +96,12 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and push frontend
+      - name: Construction et envoi du frontend
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
           push: true
-          tags: ${{ steps.registry.outputs.full }}/frontend:${{ steps.tag.outputs.tag }}
+          tags: ${{ steps.registry.outputs.full }}/backend:frontend-${{ steps.tag.outputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -116,7 +115,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set namespace
+      - name: Définir le namespace
         id: ns
         run: |
           if [ "${{ github.ref }}" = "refs/heads/develop" ]; then
@@ -127,12 +126,12 @@ jobs:
             echo "namespace=prod" >> $GITHUB_OUTPUT
           fi
 
-      - name: Configure kubectl
+      - name: Configurer kubectl
         uses: azure/k8s-set-context@v3
         with:
           kubeconfig: ${{ secrets.KUBE_CONFIG }}
 
-      - name: Deploy placeholder
+      - name: Déploiement
         run: |
           echo "✅ kubectl configuré pour le namespace ${{ steps.ns.outputs.namespace }}"
           echo "📋 Ajoutez vos manifests Kubernetes (Phase 5) pour le déploiement complet."

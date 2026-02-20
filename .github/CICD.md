@@ -33,3 +33,9 @@ Par défaut, le CD **build** les images uniquement. Pour activer Harbor et Kuber
 | develop | `dev` |
 | preprod | `preprod` |
 | prod | `v1.0.0` (version du package.json) |
+
+### Plan DigitalOcean 1 dépôt
+
+Avec un plan limité à 1 dépôt, les deux images sont poussées dans le même dépôt :
+- `backend:dev` — image backend
+- `backend:frontend-dev` — image frontend
