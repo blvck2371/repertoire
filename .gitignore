@@ -31,6 +31,7 @@ harbor/
 
 # Certificat CA Harbor (généré par le workflow CD à partir du secret)
 .github/harbor-ca.crt
+harbor-ca.crt
 
 # Playwright
 /test-results/

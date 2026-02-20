@@ -1,7 +1,0 @@
-# Image BuildKit avec certificat CA Harbor (auto-signé)
-# Utilisée par le job push-registry pour pousser vers Harbor
-FROM moby/buildkit:latest
-
-# Le fichier harbor-ca.crt est créé par le workflow à partir du secret HARBOR_CA_CERT
-COPY .github/harbor-ca.crt /usr/local/share/ca-certificates/harbor-ca.crt
-RUN apk add --no-cache ca-certificates && update-ca-certificates

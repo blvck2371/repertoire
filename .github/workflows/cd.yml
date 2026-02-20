@@ -76,26 +76,19 @@ jobs:
           echo "domain=$REGISTRY_DOMAIN" >> $GITHUB_OUTPUT
           echo "full=$REGISTRY_URL_CLEAN" >> $GITHUB_OUTPUT
 
-      - name: Installer le certificat CA Harbor (certificat auto-signé)
+      - name: Préparer le certificat CA Harbor
         if: vars.ENABLE_HARBOR_CA_CERT == 'true'
         run: |
-          REGISTRY_DOMAIN="${{ steps.registry.outputs.domain }}"
-          sudo mkdir -p /etc/docker/certs.d/$REGISTRY_DOMAIN
-          echo "${{ secrets.HARBOR_CA_CERT }}" | base64 -d | sudo tee /etc/docker/certs.d/$REGISTRY_DOMAIN/ca.crt > /dev/null
-          sudo systemctl restart docker || true
-          sleep 5
-
-      - name: Construire l'image BuildKit avec CA Harbor
-        if: vars.ENABLE_HARBOR_CA_CERT == 'true'
-        run: |
-          echo "${{ secrets.HARBOR_CA_CERT }}" | base64 -d > .github/harbor-ca.crt
-          docker build -f .github/Dockerfile.buildkit-harbor -t buildkit-harbor:latest .
+          echo "${{ secrets.HARBOR_CA_CERT }}" | base64 -d > ${{ github.workspace }}/harbor-ca.crt
+          echo "CA_CERT_PATH=${{ github.workspace }}/harbor-ca.crt" >> $GITHUB_ENV
 
       - name: Configurer Docker Buildx (avec cert auto-signé Harbor)
         if: vars.ENABLE_HARBOR_CA_CERT == 'true'
         uses: docker/setup-buildx-action@v3
         with:
-          driver-opts: image=buildkit-harbor:latest
+          buildkitd-config-inline: |
+            [registry."${{ steps.registry.outputs.domain }}"]
+              ca = ["${{ github.workspace }}/harbor-ca.crt"]
 
       - name: Configurer Docker Buildx
         uses: docker/setup-buildx-action@v3
