@@ -100,7 +100,7 @@ cd /root/harbor   # ou cd /root/repertoire/harbor
 ```
 
 ---
-
+ 
 ## 5. Vérifier les ports
 
 ```bash
