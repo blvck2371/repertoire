@@ -85,12 +85,10 @@ docker compose up -d
 ```
 → Application : http://localhost:5173
 
-### Sur Kubernetes (DigitalOcean)
-```bash
-# Avec ENABLE_HARBOR=true et ENABLE_KUBERNETES=true, le CD déploie automatiquement.
-# Récupérer l'IP du LoadBalancer :
-kubectl get svc frontend -n dev
-```
+### Sur Kubernetes
+**Option gratuite (Minikube local) :** voir [k8s/MINIKUBE.md](k8s/MINIKUBE.md)
+
+**Option cloud (DigitalOcean) :** avec `ENABLE_HARBOR=true` et `ENABLE_KUBERNETES=true`, le CD déploie automatiquement. Récupérer l'IP : `kubectl get svc frontend -n dev`
 
 ---
 
