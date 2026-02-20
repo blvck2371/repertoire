@@ -182,61 +182,22 @@ jobs:
           [ "${{ vars.ENABLE_K8S_INGRESS }}" = "true" ] && kubectl apply -n $NS -f k8s/ingress-traefik.yaml || true
           echo "✅ Déploiement terminé dans le namespace $NS"
 
-  # Déploiement orchestré : pull depuis Harbor (après push-registry)
+  # Déploiement Droplet : build sur le serveur (git pull + docker build) — fiable
   deploy-droplet:
     runs-on: ubuntu-latest
-    needs: push-registry
-    if: vars.ENABLE_DROPLET == 'true' && vars.ENABLE_HARBOR == 'true'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Définir le tag d'image
-        id: tag
-        run: |
-          if [ "${{ github.ref }}" = "refs/heads/develop" ]; then
-            echo "tag=dev" >> $GITHUB_OUTPUT
-          elif [ "${{ github.ref }}" = "refs/heads/preprod" ]; then
-            echo "tag=preprod" >> $GITHUB_OUTPUT
-          else
-            VERSION=$(node -p "require('./package.json').version")
-            echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Déploiement orchestré sur Droplet (images Harbor)
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.DROPLET_IP }}
-          username: ${{ secrets.DROPLET_USER }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
-          script: |
-            cd /root/repertoire
-            git fetch origin && git reset --hard origin/${{ github.ref_name }}
-            export REGISTRY_URL=$(echo "${{ secrets.HARBOR_URL }}" | sed 's|^https\?://||')
-            export IMAGE_TAG="${{ steps.tag.outputs.tag }}"
-            COMPOSE_FILES="-f docker-compose.prod.registry.yml"
-            [ "${{ vars.ENABLE_HTTPS }}" = "true" ] && COMPOSE_FILES="$COMPOSE_FILES -f docker-compose.https.yml"
-            export $(grep -v '^#' .env | xargs) 2>/dev/null || true
-            docker compose $COMPOSE_FILES pull --quiet
-            docker compose $COMPOSE_FILES up -d --pull always --force-recreate
-            docker compose -f docker-compose.prod.registry.yml -f docker-compose.backup.yml --profile backup run --rm --build backup || true
-            docker image prune -f
-            echo "✅ Déploiement orchestré Droplet terminé (images Harbor)"
-
-  # Fallback : déploiement direct par build (quand Harbor désactivé)
-  deploy-droplet-build:
-    runs-on: ubuntu-latest
     needs: build
-    if: vars.ENABLE_DROPLET == 'true' && vars.ENABLE_HARBOR != 'true'
+    if: vars.ENABLE_DROPLET == 'true'
     steps:
       - uses: actions/checkout@v4
 
-      - name: Déploiement direct sur Droplet (build local)
+      - name: Déploiement sur Droplet (build sur serveur)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.DROPLET_IP }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           script: |
+            set -e
             cd /root/repertoire
             git fetch origin && git reset --hard origin/${{ github.ref_name }}
             COMPOSE_FILES="-f docker-compose.prod.yml"
@@ -244,7 +205,9 @@ jobs:
             [ "${{ vars.ENABLE_MONITORING }}" = "true" ] && COMPOSE_FILES="$COMPOSE_FILES -f docker-compose.monitoring.yml"
             [ "${{ vars.ENABLE_HTTPS }}" = "true" ] && COMPOSE_FILES="$COMPOSE_FILES -f docker-compose.https.yml"
             export $(grep -v '^#' .env | xargs) 2>/dev/null || true
-            docker compose $COMPOSE_FILES up -d --build --force-recreate
-            docker compose --profile backup -f docker-compose.prod.yml -f docker-compose.backup.yml run --rm --build backup || true
+            docker compose $COMPOSE_FILES build --no-cache
+            docker compose $COMPOSE_FILES up -d --force-recreate
+            docker compose -f docker-compose.prod.yml -f docker-compose.backup.yml --profile backup run --rm --build backup || true
             docker image prune -f
-            echo "✅ Déploiement direct Droplet terminé"
+            echo "✅ Déploiement Droplet terminé"
+
