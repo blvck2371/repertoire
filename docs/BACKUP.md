@@ -68,11 +68,11 @@ docker compose -f docker-compose.prod.yml -f docker-compose.vault.yml down
 # Démarrer uniquement MongoDB
 docker compose -f docker-compose.prod.yml up -d mongodb
 
-# Copier le backup dans le conteneur (remplacer backup.tar.gz par ton fichier)
-docker cp backup.tar.gz repertoire-mongodb:/tmp/
+# Copier le backup dans le conteneur (remplacer par ton fichier .tar.gz)
+docker cp repertoire_20250101_120000.tar.gz repertoire-mongodb:/tmp/backup.tar.gz
 
 # Extraire et restaurer
-docker compose -f docker-compose.prod.yml exec mongodb sh -c "cd /tmp && tar -xzf backup.tar.gz && mongorestore --uri='mongodb://localhost:27017' --drop /tmp/dump_*"
+docker compose -f docker-compose.prod.yml exec mongodb sh -c "cd /tmp && tar -xzf backup.tar.gz && mongorestore --uri='mongodb://localhost:27017' --drop /tmp/repertoire_*"
 
 # Redémarrer toute l'application
 docker compose -f docker-compose.prod.yml up -d
@@ -86,17 +86,68 @@ Ouvrir http://IP_DROPLET et vérifier que les contacts sont bien présents.
 
 ## Rétention
 
-Par défaut, **7 backups** sont conservés. Les plus anciens sont supprimés automatiquement.
+Par défaut, **7 backups** sont conservés localement. Les plus anciens sont supprimés automatiquement. Les backups envoyés sur S3/MinIO sont conservés selon la politique du bucket (cycle de vie, etc.).
 
 ---
 
-## Stockage externe (S3/MinIO) – optionnel
+## Stockage externe (S3/MinIO)
 
-Pour envoyer les backups vers S3 ou MinIO, ajouter une étape après le backup :
+Le backup peut envoyer automatiquement les archives vers **AWS S3** ou **MinIO** (S3-compatible).
+
+### Configuration
+
+Créer un fichier `.env` à la racine du projet (ou exporter les variables) :
 
 ```bash
-# Exemple avec AWS CLI
-aws s3 cp /chemin/backup.tar.gz s3://ton-bucket/backups/
+# Activer l'upload S3
+S3_ENABLED=true
+S3_BUCKET=mon-bucket-backups
+S3_PREFIX=repertoire
+
+# Credentials AWS (ou MinIO)
+AWS_ACCESS_KEY_ID=AKIA...
+AWS_SECRET_ACCESS_KEY=...
+AWS_DEFAULT_REGION=us-east-1
+
+# Pour MinIO uniquement (endpoint personnalisé)
+AWS_ENDPOINT_URL=http://minio:9000
+# Ou si MinIO est sur le même serveur : http://localhost:9000
 ```
 
-Ou utiliser un script personnalisé dans le conteneur backup.
+### Lancer le backup avec S3
+
+```bash
+# Charger les variables depuis .env
+export $(grep -v '^#' .env | xargs)
+
+docker compose --profile backup -f docker-compose.prod.yml -f docker-compose.backup.yml run --rm backup
+```
+
+### MinIO (self-hosted, S3-compatible)
+
+1. Installer MinIO sur le serveur ou utiliser MinIO Cloud
+2. Créer un bucket (ex: `repertoire-backups`)
+3. Créer un Access Key et Secret Key
+4. Configurer :
+   ```bash
+   S3_ENABLED=true
+   S3_BUCKET=repertoire-backups
+   AWS_ACCESS_KEY_ID=minio-access-key
+   AWS_SECRET_ACCESS_KEY=minio-secret-key
+   AWS_ENDPOINT_URL=http://localhost:9000
+   ```
+
+### AWS S3
+
+1. Créer un bucket S3 sur AWS
+2. Créer un utilisateur IAM avec la politique `AmazonS3FullAccess` (ou une politique restreinte au bucket)
+3. Récupérer Access Key ID et Secret Access Key
+4. Configurer sans `AWS_ENDPOINT_URL` (AWS utilise l'endpoint par défaut)
+
+---
+
+## Backup BorgBackup (chiffré, DigitalOcean Spaces)
+
+Pour une stratégie complète avec **BorgBackup** (chiffré, dédupliqué) et **DigitalOcean Spaces** :
+
+Voir [BACKUP-STRATEGY.md](BACKUP-STRATEGY.md) — fréquence quotidienne prod, hebdo dev, restauration sandbox mensuelle.

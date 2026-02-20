@@ -263,6 +263,7 @@ docker system prune -f
 | [MONITORING-GUIDE.md](MONITORING-GUIDE.md) | Prometheus, Grafana, Kibana |
 | [GRAFANA-SETUP.md](GRAFANA-SETUP.md) | Configuration des tableaux de bord |
 | [BACKUP.md](BACKUP.md) | Backup et restauration MongoDB |
+| [BACKUP-STRATEGY.md](BACKUP-STRATEGY.md) | BorgBackup + Spaces, cron, restauration sandbox |
 
 ---
 

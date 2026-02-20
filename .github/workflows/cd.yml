@@ -186,6 +186,6 @@ jobs:
             [ "${{ vars.ENABLE_VAULT }}" = "true" ] && COMPOSE_FILES="$COMPOSE_FILES -f docker-compose.vault.yml"
             [ "${{ vars.ENABLE_MONITORING }}" = "true" ] && COMPOSE_FILES="$COMPOSE_FILES -f docker-compose.monitoring.yml"
             docker compose $COMPOSE_FILES up -d --build
-            docker compose --profile backup -f docker-compose.prod.yml -f docker-compose.backup.yml run --rm backup || true
+            docker compose --profile backup -f docker-compose.prod.yml -f docker-compose.backup.yml run --rm --build backup || true
             docker image prune -f
             echo "✅ Déploiement Droplet terminé"

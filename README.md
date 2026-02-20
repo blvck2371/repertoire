@@ -60,7 +60,7 @@
 - [x] Backup MongoDB (script + docker-compose)
 - [x] Rétention 7 jours, nettoyage automatique
 - [x] Plan de restauration documenté
-- [ ] Sauvegarde stockage externe (S3/MinIO) — optionnel
+- [x] Sauvegarde stockage externe (S3/MinIO)
 
 ---
 
@@ -111,7 +111,7 @@ Voir [docs/PHASE-4-HARBOR.md](docs/PHASE-4-HARBOR.md) — installation, configur
 Voir [docs/DEPLOIEMENT-DROPLET.md](docs/DEPLOIEMENT-DROPLET.md)
 
 ### Backup MongoDB
-Voir [docs/BACKUP.md](docs/BACKUP.md) — backup manuel ou automatique (cron)
+Voir [docs/BACKUP.md](docs/BACKUP.md) — backup manuel ou S3. **BorgBackup + Spaces** : [docs/BACKUP-STRATEGY.md](docs/BACKUP-STRATEGY.md)
 
 ### Monitoring (Prometheus, Grafana, ELK)
 Voir [docs/MONITORING.md](docs/MONITORING.md) — [Guide d'utilisation](docs/MONITORING-GUIDE.md) — Droplet 8 Go recommandé

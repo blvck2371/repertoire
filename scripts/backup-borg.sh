@@ -10,7 +10,7 @@ DUMP_DIR="${BACKUP_DIR}/dump"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
 echo "📦 [1/4] Dump MongoDB..."
-mongodump --host=mongodb --uri="mongodb://mongodb:27017/repertoire" --out="${DUMP_DIR}"
+mongodump --uri="mongodb://mongodb:27017/repertoire" --out="${DUMP_DIR}"
 
 echo "🔐 [2/4] Backup Borg (chiffré, dédupliqué)..."
 # Init repo si premier run
