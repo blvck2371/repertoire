@@ -31,9 +31,13 @@ Par défaut, le CD **build** les images uniquement. Pour activer Harbor et Kuber
 Variables optionnelles K8s (Phase 5) :
 - `ENABLE_K8S_INGRESS` = `true` — applique l'Ingress Traefik (nécessite Traefik installé)
 
-### Déploiement Droplet (économique)
+### Déploiement Droplet
 
 Variables : `ENABLE_DROPLET` = `true`
+
+**Mode orchestré** (recommandé) : quand `ENABLE_HARBOR` et `ENABLE_DROPLET` sont tous deux `true`, le Droplet **pull** les images depuis Harbor après le push. Flux : `build` → `push-registry` → `deploy-droplet` → mêmes images que K8s.
+
+**Mode direct** (fallback) : quand `ENABLE_HARBOR` est `false`, le Droplet **build** localement depuis le code (git pull + docker compose build).
 
 Variables optionnelles :
 - `ENABLE_VAULT` = `true` — déploie avec Vault pour la gestion des secrets
