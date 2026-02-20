@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+  labels:
+    app: repertoire
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: preprod
+  labels:
+    app: repertoire
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod
+  labels:
+    app: repertoire

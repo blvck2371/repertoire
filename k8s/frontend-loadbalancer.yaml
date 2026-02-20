@@ -1,0 +1,15 @@
+# Option : exposer le frontend via LoadBalancer (DigitalOcean)
+# Décommentez et appliquez pour obtenir une IP externe
+# kubectl apply -f k8s/frontend-loadbalancer.yaml -n dev
+---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: frontend-lb
+# spec:
+#   type: LoadBalancer
+#   selector:
+#     app: frontend
+#   ports:
+#     - port: 80
+#       targetPort: 80

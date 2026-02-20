@@ -26,6 +26,8 @@ Par défaut, le CD **build** les images uniquement. Pour activer Harbor et Kuber
    - `HARBOR_PASSWORD` : Token API (DigitalOcean) ou mot de passe (Harbor)
    - `KUBE_CONFIG` : Contenu du kubeconfig (pour déploiement K8s)
 
+**Note :** Pour le déploiement Kubernetes, `ENABLE_HARBOR` et `ENABLE_KUBERNETES` doivent être à `true`.
+
 ### Tags par branche
 
 | Branche | Tag image |

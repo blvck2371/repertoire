@@ -36,11 +36,11 @@
 - [ ] Stockage images dev/preprod/prod séparées
 
 ### PHASE 5 – Orchestration Kubernetes
-- [ ] Cluster 3 nœuds minimum
-- [ ] Namespaces : dev / preprod / prod
-- [ ] MongoDB en StatefulSet
-- [ ] Backend & Frontend en Deployment
-- [ ] Traefik Ingress Controller
+- [x] Namespaces : dev / preprod / prod
+- [x] MongoDB en StatefulSet
+- [x] Backend & Frontend en Deployment
+- [x] Service LoadBalancer pour accès externe
+- [ ] Traefik Ingress Controller (optionnel)
 - [ ] Autoscaling HPA
 - [ ] Helm Charts pour packaging
 
@@ -85,6 +85,13 @@ docker compose up -d
 ```
 → Application : http://localhost:5173
 
+### Sur Kubernetes (DigitalOcean)
+```bash
+# Avec ENABLE_HARBOR=true et ENABLE_KUBERNETES=true, le CD déploie automatiquement.
+# Récupérer l'IP du LoadBalancer :
+kubectl get svc frontend -n dev
+```
+
 ---
 
 ## 📌 Versioning
@@ -103,7 +110,7 @@ npm run version:major   # 1.0.0 → 2.0.0 (breaking changes)
 
 - **Branche active :** develop
 - **Version :** v1.0.0
-- **Dernière étape réalisée :** Phase 3 (Conteneurisation Docker)
+- **Dernière étape réalisée :** Phase 5 (Orchestration Kubernetes)
 
 ---
 
