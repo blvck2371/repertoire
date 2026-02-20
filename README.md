@@ -15,7 +15,7 @@
 ### PHASE 1 – Stratégie Git & Branching
 - [x] Configurer les branches principales : `develop`, `preprod`, `prod`
 - [x] Définir le workflow : develop → preprod → prod
-- [ ] Mettre en place le versioning sémantique (v1.0.0, v1.1.0…)
+- [x] Mettre en place le versioning sémantique (v1.0.0, v1.1.0…)
 
 ### PHASE 2 – CI/CD avec GitHub Actions (Multi-branches)
 - [ ] Pipeline CI (sur chaque push) : Lint, Tests unitaires, Tests E2E, Build Docker, Scan Trivy
@@ -87,10 +87,23 @@ docker compose up -d
 
 ---
 
+## 📌 Versioning
+
+Le projet utilise le **versioning sémantique** (SemVer). Voir [VERSIONING.md](VERSIONING.md) pour les détails.
+
+```bash
+npm run version:patch   # 1.0.0 → 1.0.1 (correctifs)
+npm run version:minor   # 1.0.0 → 1.1.0 (nouvelles features)
+npm run version:major   # 1.0.0 → 2.0.0 (breaking changes)
+```
+
+---
+
 ## 🚀 État actuel
 
 - **Branche active :** develop
-- **Dernière étape réalisée :** Phase 0 (Application CRUD complète)
+- **Version :** v1.0.0
+- **Dernière étape réalisée :** Phase 1 (Versioning sémantique)
 
 ---
 
