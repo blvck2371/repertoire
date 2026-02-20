@@ -103,7 +103,7 @@ Voir [docs/DEPLOIEMENT-DROPLET.md](docs/DEPLOIEMENT-DROPLET.md)
 Voir [docs/BACKUP.md](docs/BACKUP.md) — backup manuel ou automatique (cron)
 
 ### Monitoring (Prometheus, Grafana, ELK)
-Voir [docs/MONITORING.md](docs/MONITORING.md) — Droplet 8 Go recommandé
+Voir [docs/MONITORING.md](docs/MONITORING.md) — [Guide d'utilisation](docs/MONITORING-GUIDE.md) — Droplet 8 Go recommandé
 
 ---
 

@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const contactRoutes = require('./routes/contacts');
+const { metricsMiddleware, getMetrics, getContentType } = require('./metrics');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -9,10 +10,16 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/repert
 
 app.use(cors());
 app.use(express.json());
+app.use(metricsMiddleware);
 app.use('/api/contacts', contactRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'API Répertoire opérationnelle' });
+});
+
+app.get('/api/metrics', async (req, res) => {
+  res.set('Content-Type', getContentType());
+  res.end(await getMetrics());
 });
 
 function start() {

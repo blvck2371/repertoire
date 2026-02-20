@@ -2,6 +2,8 @@
 
 Stack de monitoring : **Prometheus** (métriques), **Grafana** (dashboards), **ELK** (Elasticsearch, Kibana, Filebeat) pour les logs.
 
+**→ Guide d'utilisation détaillé : [MONITORING-GUIDE.md](MONITORING-GUIDE.md)**
+
 ---
 
 ## ⚠️ Ressources requises
