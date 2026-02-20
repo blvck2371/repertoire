@@ -1,6 +1,6 @@
 {
   "name": "repertoire-backend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "API REST Répertoire Téléphonique",
   "main": "src/index.js",
   "scripts": {
