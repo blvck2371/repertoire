@@ -10,14 +10,14 @@ test.describe('Répertoire Téléphonique', () => {
   });
 
   test('affiche le formulaire de création', async ({ page }) => {
-    await expect(page.getByPlaceholder('Dupont')).toBeVisible();
-    await expect(page.getByPlaceholder('Jean')).toBeVisible();
+    await expect(page.getByPlaceholder('Dupont', { exact: true })).toBeVisible();
+    await expect(page.getByPlaceholder('Jean', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: /ajouter/i })).toBeVisible();
   });
 
   test('peut ajouter un contact', async ({ page }) => {
-    await page.getByPlaceholder('Dupont').fill('E2ETest');
-    await page.getByPlaceholder('Jean').fill('Pierre');
+    await page.getByPlaceholder('Dupont', { exact: true }).fill('E2ETest');
+    await page.getByPlaceholder('Jean', { exact: true }).fill('Pierre');
     await page.getByPlaceholder('06 12 34 56 78').fill('0698765432');
     await page.getByPlaceholder('jean.dupont@email.com').fill('pierre.e2e@test.com');
     await page.getByRole('button', { name: /ajouter/i }).click();
