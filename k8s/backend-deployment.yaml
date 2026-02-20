@@ -31,6 +31,10 @@ spec:
     spec:
       imagePullSecrets:
         - name: registry-credentials
+      initContainers:
+        - name: wait-for-mongodb
+          image: busybox:1.35
+          command: ['sh', '-c', 'until nc -z mongodb 27017; do echo "Attente MongoDB..."; sleep 2; done; echo "MongoDB prêt"']
       containers:
         - name: backend
           image: REGISTRY_URL/backend:IMAGE_TAG
