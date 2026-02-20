@@ -34,6 +34,7 @@ Variables : `ENABLE_DROPLET` = `true`
 
 Variables optionnelles :
 - `ENABLE_VAULT` = `true` — déploie avec Vault pour la gestion des secrets
+- `ENABLE_MONITORING` = `true` — déploie Prometheus, Grafana, ELK (Droplet 8 Go recommandé)
 
 Secrets :
 - `DROPLET_IP` : IP du Droplet

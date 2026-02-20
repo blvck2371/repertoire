@@ -51,10 +51,10 @@
 - [x] Rotation manuelle des secrets (documentée)
 
 ### PHASE 7 – Monitoring & Logging
-- [ ] Prometheus pour métriques
-- [ ] Grafana pour dashboards
-- [ ] Alertmanager pour alertes
-- [ ] ELK Stack pour logs centralisés
+- [x] Prometheus pour métriques
+- [x] Grafana pour dashboards
+- [x] ELK Stack (Elasticsearch, Kibana, Filebeat) pour logs
+- [ ] Alertmanager pour alertes — optionnel
 
 ### PHASE 8 – Backup & Haute disponibilité
 - [x] Backup MongoDB (script + docker-compose)
@@ -102,6 +102,9 @@ Voir [docs/DEPLOIEMENT-DROPLET.md](docs/DEPLOIEMENT-DROPLET.md)
 ### Backup MongoDB
 Voir [docs/BACKUP.md](docs/BACKUP.md) — backup manuel ou automatique (cron)
 
+### Monitoring (Prometheus, Grafana, ELK)
+Voir [docs/MONITORING.md](docs/MONITORING.md) — Droplet 8 Go recommandé
+
 ---
 
 ## 📌 Versioning
@@ -120,7 +123,7 @@ npm run version:major   # 1.0.0 → 2.0.0 (breaking changes)
 
 - **Branche active :** develop
 - **Version :** v1.0.1
-- **Dernière étape réalisée :** Phase 8 (Backup MongoDB)
+- **Dernière étape réalisée :** Phase 7 (Monitoring & Logging)
 
 ---
 
