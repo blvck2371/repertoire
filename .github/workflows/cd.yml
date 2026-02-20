@@ -214,8 +214,11 @@ jobs:
             git fetch origin && git reset --hard origin/${{ github.ref_name }}
             export REGISTRY_URL=$(echo "${{ secrets.HARBOR_URL }}" | sed 's|^https\?://||')
             export IMAGE_TAG="${{ steps.tag.outputs.tag }}"
-            docker compose -f docker-compose.prod.registry.yml pull
-            docker compose -f docker-compose.prod.registry.yml up -d
+            COMPOSE_FILES="-f docker-compose.prod.registry.yml"
+            [ "${{ vars.ENABLE_HTTPS }}" = "true" ] && COMPOSE_FILES="$COMPOSE_FILES -f docker-compose.https.yml"
+            export $(grep -v '^#' .env | xargs) 2>/dev/null || true
+            docker compose $COMPOSE_FILES pull --quiet
+            docker compose $COMPOSE_FILES up -d --pull always --force-recreate
             docker compose -f docker-compose.prod.registry.yml -f docker-compose.backup.yml --profile backup run --rm --build backup || true
             docker image prune -f
             echo "✅ Déploiement orchestré Droplet terminé (images Harbor)"
@@ -240,7 +243,9 @@ jobs:
             COMPOSE_FILES="-f docker-compose.prod.yml"
             [ "${{ vars.ENABLE_VAULT }}" = "true" ] && COMPOSE_FILES="$COMPOSE_FILES -f docker-compose.vault.yml"
             [ "${{ vars.ENABLE_MONITORING }}" = "true" ] && COMPOSE_FILES="$COMPOSE_FILES -f docker-compose.monitoring.yml"
-            docker compose $COMPOSE_FILES up -d --build
+            [ "${{ vars.ENABLE_HTTPS }}" = "true" ] && COMPOSE_FILES="$COMPOSE_FILES -f docker-compose.https.yml"
+            export $(grep -v '^#' .env | xargs) 2>/dev/null || true
+            docker compose $COMPOSE_FILES up -d --build --force-recreate
             docker compose --profile backup -f docker-compose.prod.yml -f docker-compose.backup.yml run --rm --build backup || true
             docker image prune -f
             echo "✅ Déploiement direct Droplet terminé"

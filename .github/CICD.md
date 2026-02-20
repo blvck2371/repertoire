@@ -42,6 +42,7 @@ Variables : `ENABLE_DROPLET` = `true`
 Variables optionnelles :
 - `ENABLE_VAULT` = `true` — déploie avec Vault pour la gestion des secrets
 - `ENABLE_MONITORING` = `true` — déploie Prometheus, Grafana, ELK (Droplet 8 Go recommandé)
+- `ENABLE_HTTPS` = `true` — HTTPS avec Let's Encrypt (Traefik). Requiert `DOMAIN` et `LETSENCRYPT_EMAIL` dans `.env` sur le Droplet
 
 Secrets :
 - `DROPLET_IP` : IP du Droplet

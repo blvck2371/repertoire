@@ -110,6 +110,9 @@ Voir [docs/PHASE-4-HARBOR.md](docs/PHASE-4-HARBOR.md) — installation, configur
 ### Sur DigitalOcean Droplet (économique, ~6 $/mois)
 Voir [docs/DEPLOIEMENT-DROPLET.md](docs/DEPLOIEMENT-DROPLET.md)
 
+### HTTPS + Domaine (Let's Encrypt)
+Voir [docs/HTTPS-DOMAINE.md](docs/HTTPS-DOMAINE.md) — Traefik, certificats automatiques, redirect HTTP→HTTPS
+
 ### Backup MongoDB
 Voir [docs/BACKUP.md](docs/BACKUP.md) — backup manuel ou S3. **BorgBackup + Spaces** : [docs/BACKUP-STRATEGY.md](docs/BACKUP-STRATEGY.md)
 
