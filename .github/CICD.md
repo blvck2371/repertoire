@@ -28,6 +28,15 @@ Par défaut, le CD **build** les images uniquement. Pour activer Harbor et Kuber
 
 **Note :** Pour le déploiement Kubernetes, `ENABLE_HARBOR` et `ENABLE_KUBERNETES` doivent être à `true`.
 
+### Déploiement Droplet (économique)
+
+Variables : `ENABLE_DROPLET` = `true`
+
+Secrets :
+- `DROPLET_IP` : IP du Droplet
+- `DROPLET_USER` : Utilisateur SSH (ex: root)
+- `DROPLET_SSH_KEY` : Clé privée SSH pour se connecter au Droplet
+
 ### Tags par branche
 
 | Branche | Tag image |

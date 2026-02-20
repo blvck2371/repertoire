@@ -14,13 +14,17 @@ Alternative à Kubernetes : un **Droplet** (VPS) à partir de **4-6 $/mois** au 
 
 ## 1. Créer un Droplet sur DigitalOcean
 
+**Prérequis :** Pour l'authentification par clé SSH, tu dois **ajouter au moins une clé SSH** à ton compte DigitalOcean avant de créer le Droplet :
+- **Settings** → **Security** → **SSH Keys** → **Add SSH Key**
+- Colle ta clé publique (contenu de `~/.ssh/id_rsa.pub` ou `~/.ssh/id_ed25519.pub`)
+
 1. Va sur [cloud.digitalocean.com](https://cloud.digitalocean.com)
 2. **Create** → **Droplets**
 3. Choisir :
    - **Image** : Ubuntu 22.04
    - **Plan** : Basic, 1 GB RAM (~6 $/mois) ou 512 MB (~4 $/mois)
    - **Datacenter** : le plus proche de toi
-   - **Authentication** : SSH key (recommandé)
+   - **Authentication** : SSH key (recommandé) — sélectionne la clé ajoutée ci-dessus
 
 ---
 
@@ -75,11 +79,17 @@ Le fichier `docker-compose.prod.yml` expose le frontend sur le port 80 (standard
 
 ---
 
-## 5. (Optionnel) Déploiement automatique via GitHub Actions
+## 5. Déploiement automatique via GitHub Actions
 
-On peut ajouter un job dans le workflow CD qui :
-- Se connecte en SSH au Droplet
-- Pull les dernières modifications
-- Rebuild et redémarre les containers
+Le CD gère déjà le déploiement Droplet ! Configure :
 
-Dis-moi si tu veux que je configure ça !
+**Variable :** `ENABLE_DROPLET` = `true`
+
+**Secrets :**
+- `DROPLET_IP` : IP de ton Droplet
+- `DROPLET_USER` : `root` (ou ton utilisateur SSH)
+- `DROPLET_SSH_KEY` : Ta clé privée SSH (contenu de `~/.ssh/id_rsa` ou équivalent)
+
+**Secret optionnel :** `DROPLET_PATH` — chemin du dépôt sur le Droplet (défaut : `/root/repertoire`)
+
+**Prérequis sur le Droplet :** Le dépôt doit être cloné dans le chemin configuré et configuré pour la branche develop/preprod/prod.

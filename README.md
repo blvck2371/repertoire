@@ -1,7 +1,7 @@
 # Répertoire Téléphonique - CRUD DevOps
 
 **Objectif :** Réaliser un projet CRUD Répertoire Téléphonique respectant intégralement le Cahier des Spécifications Techniques avec une stratégie CI/CD multi-branches : **develop**, **preprod** et **prod**.
-
+ 
 ---
 
 ## 📋 Plan de travail
