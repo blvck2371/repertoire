@@ -1,0 +1,28 @@
+# Overlay Backup - exécution manuelle : docker compose -f docker-compose.prod.yml -f docker-compose.backup.yml run --rm backup
+# Ou via cron sur le host pour backup automatique
+
+services:
+  backup:
+    image: mongo:7
+    container_name: repertoire-backup
+    depends_on:
+      - mongodb
+    environment:
+      BACKUP_DIR: /backups
+    volumes:
+      - backup_data:/backups
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        mongodump --host=mongodb --uri="mongodb://mongodb:27017/repertoire" --out="/backups/dump_$$(date +%Y%m%d_%H%M%S)" && \
+        cd /backups && \
+        LATEST=$$(ls -td dump_* 2>/dev/null | head -1) && \
+        tar -czf "$${LATEST}.tar.gz" "$$LATEST" && rm -rf "$$LATEST" && \
+        echo "✅ Backup: $${LATEST}.tar.gz" && \
+        ls -t *.tar.gz 2>/dev/null | tail -n +8 | xargs -r rm -f
+    restart: "no"
+    profiles:
+      - backup
+
+volumes:
+  backup_data:

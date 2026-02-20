@@ -173,8 +173,10 @@ jobs:
             git fetch origin && git reset --hard origin/${{ github.ref_name }}
             if [ "${{ vars.ENABLE_VAULT }}" = "true" ]; then
               docker compose -f docker-compose.prod.yml -f docker-compose.vault.yml up -d --build
+              docker compose --profile backup -f docker-compose.prod.yml -f docker-compose.vault.yml -f docker-compose.backup.yml run --rm backup || true
             else
               docker compose -f docker-compose.prod.yml up -d --build
+              docker compose --profile backup -f docker-compose.prod.yml -f docker-compose.backup.yml run --rm backup || true
             fi
             docker image prune -f
             echo "✅ Déploiement Droplet terminé"

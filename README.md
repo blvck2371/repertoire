@@ -57,10 +57,10 @@
 - [ ] ELK Stack pour logs centralisés
 
 ### PHASE 8 – Backup & Haute disponibilité
-- [ ] Backup MongoDB via CronJob
-- [ ] Sauvegarde stockage externe (S3/MinIO)
-- [ ] Test de restauration régulier
-- [ ] Plan Disaster Recovery
+- [x] Backup MongoDB (script + docker-compose)
+- [x] Rétention 7 jours, nettoyage automatique
+- [x] Plan de restauration documenté
+- [ ] Sauvegarde stockage externe (S3/MinIO) — optionnel
 
 ---
 
@@ -99,6 +99,9 @@ docker compose -f docker-compose.prod.yml -f docker-compose.vault.yml up -d --bu
 ### Sur DigitalOcean Droplet (économique, ~6 $/mois)
 Voir [docs/DEPLOIEMENT-DROPLET.md](docs/DEPLOIEMENT-DROPLET.md)
 
+### Backup MongoDB
+Voir [docs/BACKUP.md](docs/BACKUP.md) — backup manuel ou automatique (cron)
+
 ---
 
 ## 📌 Versioning
@@ -117,7 +120,7 @@ npm run version:major   # 1.0.0 → 2.0.0 (breaking changes)
 
 - **Branche active :** develop
 - **Version :** v1.0.1
-- **Dernière étape réalisée :** Phase 6 (Gestion des secrets avec Vault)
+- **Dernière étape réalisée :** Phase 8 (Backup MongoDB)
 
 ---
 
