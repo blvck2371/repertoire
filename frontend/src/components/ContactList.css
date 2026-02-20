@@ -30,13 +30,13 @@
 }
 
 .btn-edit {
-  background: #6366f1;
+  background: #f97316;
   color: white;
   border: none;
 }
 
 .btn-edit:hover {
-  background: #818cf8;
+  background: #fb923c;
 }
 
 .btn-delete {
