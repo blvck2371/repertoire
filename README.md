@@ -18,10 +18,10 @@
 - [x] Mettre en place le versioning sémantique (v1.0.0, v1.1.0…)
 
 ### PHASE 2 – CI/CD avec GitHub Actions (Multi-branches)
-- [ ] Pipeline CI (sur chaque push) : Lint, Tests unitaires, Tests E2E, Build Docker, Scan Trivy
-- [ ] Pipeline CD **develop** : Image tag `dev`, Push Harbor, Déploiement namespace `dev`
-- [ ] Pipeline CD **preprod** : Image tag `preprod`, Push Harbor, Déploiement namespace `preprod`, Tests validation
-- [ ] Pipeline CD **prod** : Image version sémantique, Push Harbor, Déploiement namespace `prod`, Rolling Update, Rollback auto
+- [x] Pipeline CI (sur chaque push) : Lint, Tests unitaires, Tests E2E, Build Docker, Scan Trivy
+- [x] Pipeline CD **develop** : Image tag `dev`, Push Harbor, Déploiement namespace `dev`
+- [x] Pipeline CD **preprod** : Image tag `preprod`, Push Harbor, Déploiement namespace `preprod`
+- [x] Pipeline CD **prod** : Image version sémantique, Push Harbor, Déploiement namespace `prod`
 
 ### PHASE 3 – Conteneurisation (Docker)
 - [ ] Dockerfile backend multi-stage
@@ -103,7 +103,13 @@ npm run version:major   # 1.0.0 → 2.0.0 (breaking changes)
 
 - **Branche active :** develop
 - **Version :** v1.0.0
-- **Dernière étape réalisée :** Phase 1 (Versioning sémantique)
+- **Dernière étape réalisée :** Phase 2 (CI/CD GitHub Actions)
+
+---
+
+## 🔧 CI/CD
+
+Voir [.github/CICD.md](.github/CICD.md) pour la configuration Harbor et Kubernetes.
 
 ---
 
