@@ -76,27 +76,30 @@ jobs:
           echo "domain=$REGISTRY_DOMAIN" >> $GITHUB_OUTPUT
           echo "full=$REGISTRY_URL_CLEAN" >> $GITHUB_OUTPUT
 
-      - name: Préparer le certificat CA Harbor
-        if: vars.ENABLE_HARBOR_CA_CERT == 'true'
-        run: |
-          echo "${{ secrets.HARBOR_CA_CERT }}" | base64 -d > ${{ github.workspace }}/harbor-ca.crt
-
-      - name: Installer le certificat sur le daemon Docker (pour docker login)
+      - name: Configurer le certificat CA Harbor (host + BuildKit)
         if: vars.ENABLE_HARBOR_CA_CERT == 'true'
         run: |
           REGISTRY_DOMAIN="${{ steps.registry.outputs.domain }}"
+          CERT_PATH="${{ github.workspace }}/harbor-ca.crt"
+          echo "${{ secrets.HARBOR_CA_CERT }}" | base64 -d > "$CERT_PATH"
+          # 1. Magasin système (utilisé par certains clients TLS)
+          sudo cp "$CERT_PATH" /usr/local/share/ca-certificates/harbor-ca.crt
+          sudo update-ca-certificates
+          # 2. Docker daemon (pour docker login)
           sudo mkdir -p /etc/docker/certs.d/$REGISTRY_DOMAIN
-          sudo cp ${{ github.workspace }}/harbor-ca.crt /etc/docker/certs.d/$REGISTRY_DOMAIN/ca.crt
-          sudo systemctl restart docker || true
-          sleep 5
+          sudo cp "$CERT_PATH" /etc/docker/certs.d/$REGISTRY_DOMAIN/ca.crt
+          # 3. Redémarrer Docker pour charger le certificat
+          sudo systemctl restart docker
+          sleep 10
+          docker info || true
 
-      - name: Configurer Docker Buildx (avec cert auto-signé Harbor)
+      - name: Configurer Docker Buildx (insecure pour cert auto-signé Harbor)
         if: vars.ENABLE_HARBOR_CA_CERT == 'true'
         uses: docker/setup-buildx-action@v3
         with:
           buildkitd-config-inline: |
             [registry."${{ steps.registry.outputs.domain }}"]
-              ca = ["${{ github.workspace }}/harbor-ca.crt"]
+              insecure = true
 
       - name: Configurer Docker Buildx
         uses: docker/setup-buildx-action@v3
