@@ -110,7 +110,7 @@ docker ps
 Tu dois voir les conteneurs Harbor. Le port 80 du host reste libre pour le frontend.
 
 ---
-  
+   
 ## 6. Accéder à Harbor
 
 - **URL :** `https://165.22.171.147:4443`
