@@ -169,7 +169,7 @@ jobs:
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           script: |
-            cd ${{ secrets.DROPLET_PATH || '/root/repertoire' }}
+            cd /root/repertoire
             git fetch origin && git reset --hard origin/${{ github.ref_name }}
             docker compose -f docker-compose.prod.yml up -d --build
             docker image prune -f
