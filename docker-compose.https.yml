@@ -1,0 +1,44 @@
+# HTTPS + Domaine avec Traefik et Let's Encrypt
+# Usage: docker compose -f docker-compose.prod.yml -f docker-compose.https.yml up -d
+# Variables: DOMAIN (ex: repertoire.example.com), LETSENCRYPT_EMAIL (ex: admin@example.com)
+
+services:
+  traefik:
+    image: traefik:v3.2
+    container_name: repertoire-traefik
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-acme:/etc/traefik/acme
+      - ./config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./config/traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+    environment:
+      - DOMAIN=${DOMAIN:-repertoire.example.com}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-admin@example.com}
+    networks:
+      - web
+
+  frontend:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN:-repertoire.example.com}`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.frontend-http.rule=Host(`${DOMAIN:-repertoire.example.com}`)"
+      - "traefik.http.routers.frontend-http.entrypoints=web"
+      - "traefik.http.routers.frontend-http.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+    networks:
+      - web
+
+networks:
+  web:
+    driver: bridge
+
+volumes:
+  traefik-acme:
