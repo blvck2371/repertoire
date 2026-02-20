@@ -33,7 +33,7 @@ spec:
         - name: registry-credentials
       containers:
         - name: frontend
-          image: REGISTRY_URL/backend:frontend-IMAGE_TAG
+          image: REGISTRY_URL/frontend:IMAGE_TAG
           imagePullPolicy: Always
           ports:
             - containerPort: 80

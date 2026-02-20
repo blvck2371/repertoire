@@ -49,8 +49,8 @@ Secrets :
 | preprod | `preprod` |
 | prod | `v1.0.0` (version du package.json) |
 
-### Plan DigitalOcean 1 dépôt
+### Plan Harbor / Registry
 
-Avec un plan limité à 1 dépôt, les deux images sont poussées dans le même dépôt :
-- `backend:dev` — image backend
-- `backend:frontend-dev` — image frontend
+Les images sont poussées dans le projet configuré (ex. `repertoire`) :
+- `repertoire/backend:dev` — image backend
+- `repertoire/frontend:dev` — image frontend

@@ -3,7 +3,7 @@
 ## Prérequis
 
 - Cluster Kubernetes (DigitalOcean, GKE, etc.)
-- Images poussées dans le registry (backend:tag, backend:frontend-tag)
+- Images poussées dans le registry (backend:tag, frontend:tag)
 
 ## Configuration
 

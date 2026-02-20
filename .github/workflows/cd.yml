@@ -70,11 +70,20 @@ jobs:
       - name: Configurer le registry
         id: registry
         run: |
-          # Plan 1 repo : on utilise un seul dépôt avec des tags backend-* et frontend-*
           REGISTRY_URL="${{ secrets.HARBOR_URL }}"
-          REGISTRY_DOMAIN=$(echo "$REGISTRY_URL" | cut -d'/' -f1)
+          REGISTRY_URL_CLEAN=$(echo "$REGISTRY_URL" | sed 's|^https\?://||')
+          REGISTRY_DOMAIN=$(echo "$REGISTRY_URL_CLEAN" | cut -d'/' -f1)
           echo "domain=$REGISTRY_DOMAIN" >> $GITHUB_OUTPUT
-          echo "full=$REGISTRY_URL" >> $GITHUB_OUTPUT
+          echo "full=$REGISTRY_URL_CLEAN" >> $GITHUB_OUTPUT
+
+      - name: Installer le certificat CA Harbor (certificat auto-signé)
+        if: vars.ENABLE_HARBOR_CA_CERT == 'true'
+        run: |
+          REGISTRY_DOMAIN="${{ steps.registry.outputs.domain }}"
+          sudo mkdir -p /etc/docker/certs.d/$REGISTRY_DOMAIN
+          echo "${{ secrets.HARBOR_CA_CERT }}" | base64 -d | sudo tee /etc/docker/certs.d/$REGISTRY_DOMAIN/ca.crt > /dev/null
+          sudo systemctl restart docker || true
+          sleep 5
 
       - name: Configurer Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -101,7 +110,7 @@ jobs:
         with:
           context: ./frontend
           push: true
-          tags: ${{ steps.registry.outputs.full }}/backend:frontend-${{ steps.tag.outputs.tag }}
+          tags: ${{ steps.registry.outputs.full }}/frontend:${{ steps.tag.outputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

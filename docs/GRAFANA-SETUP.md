@@ -106,6 +106,6 @@ Le backend expose un endpoint `/api/metrics` au format Prometheus. Prometheus sc
 
 | Métrique | Description |
 |----------|-------------|
-| `http_requests_total` | Nombre total de requêtes (labels: method, route, status) |
+| `http_requests_total` | Nombre total de requêtes (labels: method, route, status) — exclut `/api/metrics` et `/api/health` |
 | `http_request_duration_seconds` | Histogramme des durées de requêtes |
 | `process_*` | Métriques Node.js (CPU, mémoire, etc.) |

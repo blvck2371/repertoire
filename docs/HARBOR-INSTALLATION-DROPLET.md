@@ -20,8 +20,10 @@ Ce guide permet d'installer Harbor sur le **même Droplet** que l'application, s
 cd /root
 wget https://github.com/goharbor/harbor/releases/download/v2.11.0/harbor-offline-installer-v2.11.0.tgz
 tar xzf harbor-offline-installer-v2.11.0.tgz
-cd harbor
+cd harbor   # ou cd /root/harbor
 ```
+
+**Note :** Si tu as extrait Harbor ailleurs (ex. `/root/repertoire/harbor`), adapte le chemin : `cd /root/repertoire/harbor`
 
 ---
 
@@ -30,7 +32,7 @@ cd harbor
 Harbor utilise HTTPS. Pour une IP sans domaine, on peut utiliser des certificats auto-signés :
 
 ```bash
-cd /root/harbor
+cd /root/harbor   # ou cd /root/repertoire/harbor selon où tu as extrait
 mkdir -p certs
 cd certs
 
@@ -49,7 +51,7 @@ openssl req -x509 -nodes -days 3650 -newkey rsa:4096 \
 ## 3. Configurer harbor.yml
 
 ```bash
-cd /root/harbor
+cd /root/harbor   # ou cd /root/repertoire/harbor
 cp harbor.yml.tmpl harbor.yml
 nano harbor.yml
 ```
@@ -65,6 +67,7 @@ http:
   port: 127.0.0.1:5080
 
 # HTTPS sur le port 4443
+# Si Harbor est dans /root/repertoire/harbor, utilise /root/repertoire/harbor/certs/...
 https:
   port: 4443
   certificate: /root/harbor/certs/server.crt
@@ -79,7 +82,7 @@ harbor_admin_password: Harbor12345
 ## 4. Préparer et installer
 
 ```bash
-cd /root/harbor
+cd /root/harbor   # ou cd /root/repertoire/harbor
 ./prepare
 ./install.sh
 ```
@@ -108,23 +111,26 @@ Le navigateur affichera un avertissement de sécurité (certificat auto-signé).
 
 ## 7. Configurer GitHub Actions pour Harbor
 
-Dans les secrets GitHub :
+Voir le guide complet : [PHASE-4-HARBOR.md](PHASE-4-HARBOR.md)
 
+**Secrets :**
 ```text
-HARBOR_URL = https://165.22.171.147:4443
+HARBOR_URL = 165.22.171.147:4443/repertoire
 HARBOR_USERNAME = admin
 HARBOR_PASSWORD = ton_mot_de_passe
+HARBOR_CA_CERT = (contenu base64 de server.crt)
 ```
 
-Variables :
-
+**Variables :**
 ```text
 ENABLE_HARBOR = true
+ENABLE_HARBOR_CA_CERT = true
 ```
 
-**Important :** Les runners GitHub Actions ne font pas confiance aux certificats auto-signés. Pour que le push fonctionne, il faut soit :
-- Ajouter l'option `insecure` dans la config Docker (si Harbor accepte les connexions non vérifiées)
-- Ou utiliser un certificat signé par Let's Encrypt (nécessite un domaine)
+**Obtenir le certificat en base64 :**
+```bash
+base64 -w 0 /root/harbor/certs/server.crt
+```
 
 ---
 
@@ -149,6 +155,7 @@ docker login 165.22.171.147:4443
 2. **Projects** → **New Project**
 3. Nom : `repertoire`
 4. Access Level : **Public** (ou Private si tu préfères)
+5. **Vulnerability scanning** : activé (Trivy)
 
 ---
 

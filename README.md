@@ -30,10 +30,10 @@
 - [x] Images versionnées selon branche
 
 ### PHASE 4 – Registry privé (Harbor)
-- [ ] Installation Harbor
-- [ ] Création projet privé
-- [ ] Scan automatique vulnérabilités
-- [ ] Stockage images dev/preprod/prod séparées
+- [x] Installation Harbor
+- [x] Création projet privé
+- [x] Scan automatique vulnérabilités (Trivy)
+- [x] Stockage images dev/preprod/prod séparées
 
 ### PHASE 5 – Orchestration Kubernetes
 - [x] Namespaces : dev / preprod / prod
@@ -64,6 +64,12 @@
 
 ---
 
+## 📖 Guide complet
+
+**Besoin d'aide pour tout configurer ?** → [docs/GUIDE-COMPLET.md](docs/GUIDE-COMPLET.md) — GitHub, Droplet, Vault, Monitoring, Backup, dépannage.
+
+---
+
 ## 🏃 Lancer l'application
 
 ### Développement local
@@ -90,6 +96,9 @@ docker compose up -d
 docker compose -f docker-compose.prod.yml -f docker-compose.vault.yml up -d --build
 ```
 → Voir [docs/VAULT.md](docs/VAULT.md)
+
+### Registry Harbor (Phase 4)
+Voir [docs/PHASE-4-HARBOR.md](docs/PHASE-4-HARBOR.md) — installation, configuration GitHub, scan vulnérabilités.
 
 ### Sur Kubernetes
 **Option gratuite (Minikube local) :** voir [k8s/MINIKUBE.md](k8s/MINIKUBE.md)
@@ -123,7 +132,7 @@ npm run version:major   # 1.0.0 → 2.0.0 (breaking changes)
 
 - **Branche active :** develop
 - **Version :** v1.0.1
-- **Dernière étape réalisée :** Phase 7 (Monitoring & Logging)
+- **Dernière étape réalisée :** Phase 4 (Registry Harbor) + Phase 7 (Monitoring)
 
 ---
 

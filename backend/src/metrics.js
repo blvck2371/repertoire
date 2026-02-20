@@ -18,7 +18,13 @@ const httpRequestTotal = new client.Counter({
   registers: [register],
 });
 
+const EXCLUDED_PATHS = ['/api/metrics', '/api/health'];
+
 function metricsMiddleware(req, res, next) {
+  if (EXCLUDED_PATHS.includes(req.path)) {
+    return next();
+  }
+
   const start = Date.now();
   res.on('finish', () => {
     const duration = (Date.now() - start) / 1000;

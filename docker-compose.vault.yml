@@ -14,7 +14,11 @@ services:
     cap_add:
       - IPC_LOCK
     healthcheck:
-      disable: true
+      test: ["CMD", "vault", "status", "-address=http://127.0.0.1:8200"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
     restart: unless-stopped
 
   vault-init:
@@ -22,7 +26,7 @@ services:
     container_name: repertoire-vault-init
     depends_on:
       vault:
-        condition: service_started
+        condition: service_healthy
     environment:
       VAULT_ADDR: http://vault:8200
       VAULT_TOKEN: root
