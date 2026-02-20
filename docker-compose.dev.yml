@@ -1,0 +1,15 @@
+# Pour le développement local : MongoDB uniquement
+# Backend et frontend à lancer avec npm run dev
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: repertoire-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:
