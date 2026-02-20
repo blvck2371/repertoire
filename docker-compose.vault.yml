@@ -13,12 +13,6 @@ services:
     command: server -dev
     cap_add:
       - IPC_LOCK
-    healthcheck:
-      test: ["CMD", "wget", "-q", "-O-", "http://localhost:8200/v1/sys/health"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-      start_period: 10s
     restart: unless-stopped
 
   vault-init:
@@ -26,7 +20,7 @@ services:
     container_name: repertoire-vault-init
     depends_on:
       vault:
-        condition: service_healthy
+        condition: service_started
     environment:
       VAULT_ADDR: http://vault:8200
       VAULT_TOKEN: root
