@@ -30,13 +30,11 @@ docker compose -f docker-compose.prod.yml -f docker-compose.monitoring.yml up -d
 | **Kibana** | http://IP:5601 | — |
 | **Prometheus** | http://IP:9090 | — |
 
-Les ports sont exposés sur `127.0.0.1` par défaut. Pour un accès externe, modifier dans le compose ou utiliser un tunnel SSH :
+Les ports sont exposés sur toutes les interfaces. Accès direct :
 
-```bash
-ssh -L 3000:localhost:3000 -L 5601:localhost:5601 -L 9090:localhost:9090 root@TON_IP
-```
-
-Puis ouvrir http://localhost:3000 (Grafana) et http://localhost:5601 (Kibana).
+- **Grafana** : http://TON_IP:3000
+- **Kibana** : http://TON_IP:5601
+- **Prometheus** : http://TON_IP:9090
 
 ---
 
