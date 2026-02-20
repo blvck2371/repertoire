@@ -45,10 +45,10 @@
 - [ ] Helm Charts pour packaging
 
 ### PHASE 6 – Gestion des secrets (Vault)
-- [ ] Installation Vault
-- [ ] Stockage sécurisé credentials MongoDB
-- [ ] Injection dynamique secrets dans Pods
-- [ ] Rotation automatique secrets
+- [x] Installation Vault (mode dev, Docker Compose)
+- [x] Stockage sécurisé credentials MongoDB
+- [x] Injection dynamique secrets au démarrage du backend
+- [x] Rotation manuelle des secrets (documentée)
 
 ### PHASE 7 – Monitoring & Logging
 - [ ] Prometheus pour métriques
@@ -85,6 +85,12 @@ docker compose up -d
 ```
 → Application : http://localhost:5173
 
+### Avec Vault (secrets sécurisés)
+```bash
+docker compose -f docker-compose.prod.yml -f docker-compose.vault.yml up -d --build
+```
+→ Voir [docs/VAULT.md](docs/VAULT.md)
+
 ### Sur Kubernetes
 **Option gratuite (Minikube local) :** voir [k8s/MINIKUBE.md](k8s/MINIKUBE.md)
 
@@ -110,8 +116,8 @@ npm run version:major   # 1.0.0 → 2.0.0 (breaking changes)
 ## 🚀 État actuel
 
 - **Branche active :** develop
-- **Version :** v1.0.0
-- **Dernière étape réalisée :** Phase 5 (Orchestration Kubernetes)
+- **Version :** v1.0.1
+- **Dernière étape réalisée :** Phase 6 (Gestion des secrets avec Vault)
 
 ---
 

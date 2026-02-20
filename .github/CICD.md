@@ -32,6 +32,9 @@ Par défaut, le CD **build** les images uniquement. Pour activer Harbor et Kuber
 
 Variables : `ENABLE_DROPLET` = `true`
 
+Variables optionnelles :
+- `ENABLE_VAULT` = `true` — déploie avec Vault pour la gestion des secrets
+
 Secrets :
 - `DROPLET_IP` : IP du Droplet
 - `DROPLET_USER` : Utilisateur SSH (ex: root)

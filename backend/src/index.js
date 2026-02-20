@@ -15,8 +15,9 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'API Répertoire opérationnelle' });
 });
 
-if (require.main === module) {
-  mongoose.connect(MONGODB_URI)
+function start() {
+  const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/repertoire';
+  mongoose.connect(uri)
     .then(() => console.log('✅ MongoDB connecté'))
     .catch((err) => console.error('❌ Erreur MongoDB:', err));
 
@@ -25,4 +26,8 @@ if (require.main === module) {
   });
 }
 
-module.exports = app;
+if (require.main === module) {
+  start();
+}
+
+module.exports = { app, start };
