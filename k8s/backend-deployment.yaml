@@ -34,7 +34,7 @@ spec:
       initContainers:
         - name: wait-for-mongodb
           image: busybox:1.35
-          command: ['sh', '-c', 'until nc -z mongodb 27017; do echo "Attente MongoDB..."; sleep 2; done; echo "MongoDB prêt"']
+          command: ['sh', '-c', 'until nc -z mongodb-svc 27017; do echo "Attente MongoDB..."; sleep 2; done; echo "MongoDB prêt"']
       containers:
         - name: backend
           image: REGISTRY_URL/backend:IMAGE_TAG
@@ -45,7 +45,7 @@ spec:
             - name: PORT
               value: "3001"
             - name: MONGODB_URI
-              value: "mongodb://mongodb:27017/repertoire"
+              value: "mongodb://mongodb-svc:27017/repertoire"
           resources:
             requests:
               memory: "128Mi"
