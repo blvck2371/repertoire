@@ -54,8 +54,8 @@ fi
 # Remplacer hostname
 sed -i.bak "s|^hostname:.*|hostname: $IP|" harbor.yml
 
-# HTTP : port 80 -> 127.0.0.1:5080 (libère le port 80 pour le frontend)
-sed -i.bak 's| port: 80| port: 127.0.0.1:5080|' harbor.yml
+# HTTP : port 80 -> "127.0.0.1:5080" (guillemets requis pour le : en YAML)
+sed -i.bak 's| port: 80| port: "127.0.0.1:5080"|' harbor.yml
 
 # HTTPS : port 443 -> 4443, chemins certificats
 sed -i.bak 's| port: 443| port: 4443|' harbor.yml
