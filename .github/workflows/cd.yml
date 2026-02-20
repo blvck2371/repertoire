@@ -80,7 +80,15 @@ jobs:
         if: vars.ENABLE_HARBOR_CA_CERT == 'true'
         run: |
           echo "${{ secrets.HARBOR_CA_CERT }}" | base64 -d > ${{ github.workspace }}/harbor-ca.crt
-          echo "CA_CERT_PATH=${{ github.workspace }}/harbor-ca.crt" >> $GITHUB_ENV
+
+      - name: Installer le certificat sur le daemon Docker (pour docker login)
+        if: vars.ENABLE_HARBOR_CA_CERT == 'true'
+        run: |
+          REGISTRY_DOMAIN="${{ steps.registry.outputs.domain }}"
+          sudo mkdir -p /etc/docker/certs.d/$REGISTRY_DOMAIN
+          sudo cp ${{ github.workspace }}/harbor-ca.crt /etc/docker/certs.d/$REGISTRY_DOMAIN/ca.crt
+          sudo systemctl restart docker || true
+          sleep 5
 
       - name: Configurer Docker Buildx (avec cert auto-signé Harbor)
         if: vars.ENABLE_HARBOR_CA_CERT == 'true'
