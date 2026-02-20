@@ -24,10 +24,10 @@
 - [x] Pipeline CD **prod** : Image version sémantique, Push Harbor, Déploiement namespace `prod`
 
 ### PHASE 3 – Conteneurisation (Docker)
-- [ ] Dockerfile backend multi-stage
-- [ ] Dockerfile frontend optimisé
-- [ ] Docker Compose pour environnement local
-- [ ] Images versionnées selon branche
+- [x] Dockerfile backend multi-stage
+- [x] Dockerfile frontend optimisé
+- [x] Docker Compose pour environnement local
+- [x] Images versionnées selon branche
 
 ### PHASE 4 – Registry privé (Harbor)
 - [ ] Installation Harbor
@@ -103,7 +103,7 @@ npm run version:major   # 1.0.0 → 2.0.0 (breaking changes)
 
 - **Branche active :** develop
 - **Version :** v1.0.0
-- **Dernière étape réalisée :** Phase 2 (CI/CD GitHub Actions)
+- **Dernière étape réalisée :** Phase 3 (Conteneurisation Docker)
 
 ---
 
