@@ -85,13 +85,17 @@ jobs:
           sudo systemctl restart docker || true
           sleep 5
 
+      - name: Construire l'image BuildKit avec CA Harbor
+        if: vars.ENABLE_HARBOR_CA_CERT == 'true'
+        run: |
+          echo "${{ secrets.HARBOR_CA_CERT }}" | base64 -d > .github/harbor-ca.crt
+          docker build -f .github/Dockerfile.buildkit-harbor -t buildkit-harbor:latest .
+
       - name: Configurer Docker Buildx (avec cert auto-signé Harbor)
+        if: vars.ENABLE_HARBOR_CA_CERT == 'true'
         uses: docker/setup-buildx-action@v3
         with:
-          config-inline: |
-            [registry."${{ steps.registry.outputs.domain }}"]
-              insecure = true
-        if: vars.ENABLE_HARBOR_CA_CERT == 'true'
+          driver-opts: image=buildkit-harbor:latest
 
       - name: Configurer Docker Buildx
         uses: docker/setup-buildx-action@v3
