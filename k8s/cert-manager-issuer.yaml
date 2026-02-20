@@ -1,0 +1,35 @@
+# ClusterIssuer Let's Encrypt - à appliquer une fois sur le cluster
+# Prérequis : cert-manager installé (helm install cert-manager jetstack/cert-manager ...)
+# Remplacer LETSENCRYPT_EMAIL par ton email (notifications expiration)
+# Usage : sed -e "s|LETSENCRYPT_EMAIL|ton@email.com|g" k8s/cert-manager-issuer.yaml | kubectl apply -f -
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: LETSENCRYPT_EMAIL
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+      - http01:
+          ingress:
+            class: traefik
+---
+# Staging (pour tests - pas de limite de taux)
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: LETSENCRYPT_EMAIL
+    privateKeySecretRef:
+      name: letsencrypt-staging
+    solvers:
+      - http01:
+          ingress:
+            class: traefik

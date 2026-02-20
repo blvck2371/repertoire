@@ -1,0 +1,29 @@
+# Ingress Traefik avec domaine et HTTPS (Let's Encrypt)
+# Placeholders : DOMAIN_HOST (ex: prod.mondomaine.com)
+# Prérequis : Traefik, cert-manager, ClusterIssuer letsencrypt-prod
+# Usage : sed + kubectl apply (voir workflow CD)
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: repertoire-ingress
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - DOMAIN_HOST
+      secretName: repertoire-tls
+  rules:
+    - host: DOMAIN_HOST
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
