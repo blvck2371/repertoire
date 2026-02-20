@@ -11,14 +11,18 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/contacts', contactRoutes);
 
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('✅ MongoDB connecté'))
-  .catch((err) => console.error('❌ Erreur MongoDB:', err));
-
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'API Répertoire opérationnelle' });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  mongoose.connect(MONGODB_URI)
+    .then(() => console.log('✅ MongoDB connecté'))
+    .catch((err) => console.error('❌ Erreur MongoDB:', err));
+
+  app.listen(PORT, () => {
+    console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;

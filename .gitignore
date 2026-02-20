@@ -9,6 +9,7 @@ node_modules/
 # Build
 dist/
 build/
+coverage/
 *.log
 npm-debug.log*
 
@@ -24,3 +25,9 @@ Thumbs.db
 
 # Docker
 *.log
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
