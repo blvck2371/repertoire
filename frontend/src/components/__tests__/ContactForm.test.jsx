@@ -33,4 +33,41 @@ describe('ContactForm', () => {
       email: 'pierre@test.com'
     });
   });
+
+  it('affiche le formulaire en mode édition avec bouton Annuler', () => {
+    const contact = { _id: '1', nom: 'Dupont', prenom: 'Jean', telephone: '06', email: 'j@t.fr' };
+    const onCancel = vi.fn();
+    render(<ContactForm onSubmit={() => {}} contact={contact} onCancel={onCancel} />);
+
+    expect(screen.getByText('Modifier le contact')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Annuler' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Mettre à jour' })).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Dupont')).toBeInTheDocument();
+  });
+
+  it('appelle onCancel quand on clique Annuler', () => {
+    const contact = { _id: '1', nom: 'Dupont', prenom: 'Jean', telephone: '06', email: 'j@t.fr' };
+    const onCancel = vi.fn();
+    render(<ContactForm onSubmit={() => {}} contact={contact} onCancel={onCancel} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Annuler' }));
+    expect(onCancel).toHaveBeenCalled();
+  });
+
+  it('appelle onSubmit en mode édition', () => {
+    const contact = { _id: '1', nom: 'Dupont', prenom: 'Jean', telephone: '06', email: 'j@t.fr' };
+    const onSubmit = vi.fn();
+    render(<ContactForm onSubmit={onSubmit} contact={contact} onCancel={() => {}} />);
+
+    fireEvent.change(screen.getByPlaceholderText('Dupont'), { target: { value: 'Martin' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Mettre à jour' }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      _id: '1',
+      nom: 'Martin',
+      prenom: 'Jean',
+      telephone: '06',
+      email: 'j@t.fr'
+    });
+  });
 });

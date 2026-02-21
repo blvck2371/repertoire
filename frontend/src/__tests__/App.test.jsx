@@ -82,4 +82,149 @@ describe('App', () => {
       }));
     });
   });
+
+  it('affiche une erreur si la création échoue', async () => {
+    globalThis.fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) })
+      .mockResolvedValueOnce({ ok: false });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('Dupont')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByPlaceholderText('Dupont'), { target: { value: 'Test' } });
+    fireEvent.change(screen.getByPlaceholderText('Jean'), { target: { value: 'Err' } });
+    fireEvent.change(screen.getByPlaceholderText('06 12 34 56 78'), { target: { value: '0612345678' } });
+    fireEvent.change(screen.getByPlaceholderText('jean.dupont@email.com'), { target: { value: 'e@t.fr' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Erreur/)).toBeInTheDocument();
+    });
+  });
+
+  it('met à jour un contact', async () => {
+    const contacts = [
+      { _id: '123', nom: 'Dupont', prenom: 'Jean', telephone: '06', email: 'j@t.fr' }
+    ];
+    globalThis.fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(contacts) })
+      .mockResolvedValueOnce({ ok: true })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([{ ...contacts[0], nom: 'Martin' }]) });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Jean Dupont')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Modifier' }));
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Dupont')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByPlaceholderText('Dupont'), { target: { value: 'Martin' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Mettre à jour' }));
+
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith('/api/contacts/123', expect.objectContaining({
+        method: 'PUT',
+        body: expect.stringContaining('Martin')
+      }));
+    });
+  });
+
+  it('affiche une erreur si la mise à jour échoue', async () => {
+    const contacts = [
+      { _id: '123', nom: 'Dupont', prenom: 'Jean', telephone: '06', email: 'j@t.fr' }
+    ];
+    globalThis.fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(contacts) })
+      .mockResolvedValueOnce({ ok: false });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Jean Dupont')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Modifier' }));
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Mettre à jour' })).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByPlaceholderText('Dupont'), { target: { value: 'X' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Mettre à jour' }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Erreur/)).toBeInTheDocument();
+    });
+  });
+
+  it('supprime un contact', async () => {
+    const contacts = [
+      { _id: '123', nom: 'ASuppr', prenom: 'Test', telephone: '06', email: 'a@t.fr' }
+    ];
+    globalThis.fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(contacts) })
+      .mockResolvedValueOnce({ ok: true })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Test ASuppr')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Supprimer' }));
+
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith('/api/contacts/123', expect.objectContaining({
+        method: 'DELETE'
+      }));
+    });
+  });
+
+  it('affiche une erreur si la suppression échoue', async () => {
+    const contacts = [
+      { _id: '123', nom: 'Err', prenom: 'Del', telephone: '06', email: 'e@t.fr' }
+    ];
+    globalThis.fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(contacts) })
+      .mockResolvedValueOnce({ ok: false });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Del Err')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Supprimer' }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Erreur/)).toBeInTheDocument();
+    });
+  });
+
+  it('ne supprime pas si l\'utilisateur annule la confirmation', async () => {
+    vi.stubGlobal('confirm', vi.fn(() => false));
+    const contacts = [
+      { _id: '123', nom: 'Keep', prenom: 'Me', telephone: '06', email: 'k@t.fr' }
+    ];
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(contacts) });
+    globalThis.fetch = fetchMock;
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Me Keep')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Supprimer' }));
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });

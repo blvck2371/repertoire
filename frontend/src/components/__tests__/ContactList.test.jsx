@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import ContactList from '../ContactList';
 
 describe('ContactList', () => {
@@ -25,5 +25,23 @@ describe('ContactList', () => {
     render(<ContactList contacts={contacts} onEdit={() => {}} onDelete={() => {}} />);
     expect(screen.getByRole('button', { name: /modifier/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /supprimer/i })).toBeInTheDocument();
+  });
+
+  it('appelle onEdit quand on clique Modifier', () => {
+    const contact = { _id: '1', nom: 'Dupont', prenom: 'Jean', telephone: '06', email: 'j@t.fr' };
+    const onEdit = vi.fn();
+    render(<ContactList contacts={[contact]} onEdit={onEdit} onDelete={() => {}} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /modifier/i }));
+    expect(onEdit).toHaveBeenCalledWith(contact);
+  });
+
+  it('appelle onDelete quand on clique Supprimer', () => {
+    const contact = { _id: '123', nom: 'Dupont', prenom: 'Jean', telephone: '06', email: 'j@t.fr' };
+    const onDelete = vi.fn();
+    render(<ContactList contacts={[contact]} onEdit={() => {}} onDelete={onDelete} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /supprimer/i }));
+    expect(onDelete).toHaveBeenCalledWith('123');
   });
 });
