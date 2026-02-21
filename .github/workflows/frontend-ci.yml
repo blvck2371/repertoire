@@ -318,6 +318,11 @@ jobs:
                       class: traefik
           EOF
 
+      - name: Fix Certificate ownership (si conflit Helm)
+        run: |
+          kubectl delete certificate repertoire-tls -n repertoire-dev --ignore-not-found=true || true
+          sleep 2
+
       - name: Deploy / Upgrade Helm
         run: |
           helm upgrade --install repertoire ./helm/repertoire \
