@@ -68,12 +68,12 @@ Create image name with optional registry (backend, frontend)
 {{- end }}
 
 {{/*
-MongoDB image - Harbor si mongodbImageRegistry défini, sinon Docker Hub
+MongoDB image - imageRegistry si défini (Harbor), sinon Docker Hub
 */}}
 {{- define "repertoire.mongodb.image" -}}
-{{- if .Values.mongodbImageRegistry -}}
-{{ .Values.mongodbImageRegistry }}/mongo:{{ .Values.mongodb.image.tag | default "7" }}
+{{- if .Values.imageRegistry -}}
+{{ .Values.imageRegistry }}/mongo:7
 {{- else -}}
-{{ .Values.mongodb.image.repository }}:{{ .Values.mongodb.image.tag | default "7" }}
+mongo:7
 {{- end }}
 {{- end }}

@@ -280,9 +280,15 @@ jobs:
         run: |
           helm upgrade --install repertoire ./helm/repertoire \
             -n repertoire-dev \
+            -f helm/repertoire/values.yaml \
             -f helm/repertoire/values-dev.yaml \
             --timeout 3m
           echo "Helm deploy terminé, attente des pods..."
+
+      - name: Force MongoDB pod refresh (si bloqué)
+        run: |
+          kubectl delete pod -l app.kubernetes.io/component=mongodb -n repertoire-dev --ignore-not-found=true || true
+          sleep 10
 
       - name: Wait for MongoDB
         run: |
