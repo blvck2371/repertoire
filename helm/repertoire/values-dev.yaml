@@ -1,8 +1,8 @@
 # Valeurs pour l'environnement dev (develop)
-# Images depuis Harbor : 46.101.199.158.nip.io/dev/repertoire-backend:latest
+# Images depuis Harbor : repertoire-harbor.duckdns.org/dev/repertoire-backend:latest
 environment: dev
 
-imageRegistry: "46.101.199.158.nip.io/dev"
+imageRegistry: "repertoire-harbor.duckdns.org/dev"
 imagePullSecrets: [harbor-creds]
 
 backend:
