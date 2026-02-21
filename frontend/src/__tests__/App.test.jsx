@@ -14,7 +14,7 @@ describe('App', () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText('Répertoire Téléphonique')).toBeInTheDocument();
+      expect(screen.getByText(/Répertoire Téléphonique/)).toBeInTheDocument();
     });
     expect(screen.getByText('Gérez vos contacts')).toBeInTheDocument();
     expect(screen.getByText('Liste des contacts')).toBeInTheDocument();
@@ -66,13 +66,13 @@ describe('App', () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByLabelText('Nom')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Dupont')).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByLabelText('Nom'), { target: { value: 'Martin' } });
-    fireEvent.change(screen.getByLabelText('Prénom'), { target: { value: 'Pierre' } });
-    fireEvent.change(screen.getByLabelText('Téléphone'), { target: { value: '0612345678' } });
-    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'pierre@test.fr' } });
+    fireEvent.change(screen.getByPlaceholderText('Dupont'), { target: { value: 'Martin' } });
+    fireEvent.change(screen.getByPlaceholderText('Jean'), { target: { value: 'Pierre' } });
+    fireEvent.change(screen.getByPlaceholderText('06 12 34 56 78'), { target: { value: '0612345678' } });
+    fireEvent.change(screen.getByPlaceholderText('jean.dupont@email.com'), { target: { value: 'pierre@test.fr' } });
     fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }));
 
     await waitFor(() => {
