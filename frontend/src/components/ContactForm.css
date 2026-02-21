@@ -1,0 +1,51 @@
+.contact-form {
+  background: var(--bg-card);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #30363d;
+}
+
+.contact-form h2 {
+  font-size: 1.125rem;
+  margin-bottom: 1rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-grid label {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.btn-primary {
+  background: #C2410C;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #D35400;
+}
+
+.btn-cancel {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid #30363d;
+}
+
+.btn-cancel:hover {
+  background: #21262d;
+  color: var(--text);
+}
