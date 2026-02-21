@@ -129,15 +129,23 @@ helm upgrade repertoire ./helm/repertoire -n repertoire-dev -f helm/repertoire/v
 
 ## Dépannage
 
+### Erreur : context deadline exceeded (timeout Helm)
+
+Le déploiement dépasse le délai. Causes possibles :
+- Les pods ne démarrent pas (voir ImagePullBackOff ci-dessous)
+- MongoDB ou le backend mettent trop de temps à démarrer
+
+**Vérifier :** `kubectl get pods -n repertoire-dev` et `kubectl describe pod <nom> -n repertoire-dev`
+
 ### Erreur : ImagePullBackOff / ErrImagePull
 
-Les nœuds ne peuvent pas pull depuis Harbor (HTTP non sécurisé).
+Les nœuds ne peuvent pas pull depuis Harbor (HTTP non sécurisé). **C'est souvent la cause du timeout.**
 
-**Solution 1 :** Configurer les nœuds DOKS pour accepter le registry. DigitalOcean ne permet pas de modifier facilement le daemon Docker des nœuds managés.
+**Solution 1 :** Mettre Harbor en HTTPS (certificat Let's Encrypt ou auto-signé) – recommandé.
 
-**Solution 2 :** Mettre Harbor en HTTPS (certificat Let's Encrypt ou auto-signé) – recommandé pour la production.
+**Solution 2 :** Utiliser GitHub Container Registry (ghcr.io) ou Docker Hub pour les images.
 
-**Solution 3 :** Utiliser un registry public (GitHub Container Registry, Docker Hub) pour les images.
+**Solution 3 :** Sur DOKS, les nœuds utilisent containerd. Un registry HTTP peut nécessiter une configuration spécifique (non supportée nativement par DigitalOcean).
 
 ### Erreur : secret harbor-creds not found
 

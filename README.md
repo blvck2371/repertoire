@@ -121,7 +121,7 @@ npm run test:e2e       # Lancer les tests E2E
 ## À faire manuellement (Digital Ocean, GitHub, VPS)
 
 - **Phase 1 :** Créer les branches `preprod` et `prod` sur GitHub si elles n’existent pas
-- **Phase 4 :** Installer Harbor + configurer GitHub – [Guide DigitalOcean pas à pas](docs/HARBOR-DIGITALOCEAN.md) | [Référence complète](docs/HARBOR-SETUP.md)
+- **Phase 4 :** Installer Harbor + configurer GitHub – [Guide DigitalOcean](docs/HARBOR-DIGITALOCEAN.md) | [HTTPS](docs/HARBOR-HTTPS.md) | [Référence](docs/HARBOR-SETUP.md)
 - **Phase 5 :** Créer un cluster DOKS + déployer – voir [docs/KUBERNETES-DIGITALOCEAN.md](docs/KUBERNETES-DIGITALOCEAN.md)
 - **Phase 10 :** Créer les Droplets DigitalOcean (8 vCores, 32 Go RAM, 1 To SSD)
 
