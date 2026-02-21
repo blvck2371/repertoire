@@ -446,18 +446,16 @@ jobs:
           docker tag repertoire-backup:latest ${{ secrets.HARBOR_URL }}/dev/repertoire-backup:latest
           docker push ${{ secrets.HARBOR_URL }}/dev/repertoire-backup:latest
 
-      - name: Install MinIO (stockage S3)
+      - name: Install MinIO (Bitnami – stockage S3)
         run: |
-          helm repo add minio https://charts.min.io/ --force-update
+          helm repo add bitnami https://charts.bitnami.com/bitnami --force-update
           helm repo update
-          helm upgrade --install repertoire-minio minio/minio \
+          helm upgrade --install repertoire-minio bitnami/minio \
             -n repertoire-dev \
-            --set rootUser=minioadmin \
-            --set rootPassword=minioadmin \
+            --set auth.rootUser=minioadmin \
+            --set auth.rootPassword=minioadmin \
             --set persistence.enabled=false \
-            --set mode=standalone \
-            --set "environment.MINIO_BROWSER_REDIRECT_URL=https://minio-repertoire.duckdns.org/" \
-            --set "environment.MINIO_SERVER_URL=https://minio-api-repertoire.duckdns.org" \
+            --set defaultBuckets=repertoire-backups \
             --wait --timeout 2m || true
 
       - name: Create backup credentials secret
@@ -468,10 +466,9 @@ jobs:
             --from-literal=restic-password=repertoire-backup-dev \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Exposer MinIO en HTTPS (IngressRoute API + Console)
+      - name: Exposer MinIO Console en HTTPS (IngressRoute)
         run: |
           kubectl delete certificate minio-tls -n repertoire-dev --ignore-not-found=true --wait=false 2>/dev/null || true
-          kubectl delete certificate minio-api-tls -n repertoire-dev --ignore-not-found=true --wait=false 2>/dev/null || true
           sleep 2
           kubectl apply -f - <<'MINIOEOF'
           apiVersion: cert-manager.io/v1
@@ -486,25 +483,6 @@ jobs:
               kind: ClusterIssuer
             dnsNames:
               - minio-repertoire.duckdns.org
-              - minio-api-repertoire.duckdns.org
-          ---
-          apiVersion: traefik.io/v1alpha1
-          kind: IngressRoute
-          metadata:
-            name: minio-api
-            namespace: repertoire-dev
-          spec:
-            entryPoints:
-              - web
-              - websecure
-            routes:
-              - match: Host(`minio-api-repertoire.duckdns.org`) && PathPrefix(`/`)
-                kind: Rule
-                services:
-                  - name: repertoire-minio
-                    port: 9000
-            tls:
-              secretName: minio-tls
           ---
           apiVersion: traefik.io/v1alpha1
           kind: IngressRoute
@@ -520,7 +498,7 @@ jobs:
                 kind: Rule
                 services:
                   - name: repertoire-minio-console
-                    port: 9001
+                    port: 9090
             tls:
               secretName: minio-tls
           MINIOEOF

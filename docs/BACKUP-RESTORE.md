@@ -14,8 +14,8 @@
 ## Accès MinIO (HTTPS)
 
 - **Console** : https://minio-repertoire.duckdns.org (minioadmin / minioadmin)
-- **API S3** : https://minio-api-repertoire.duckdns.org
-- **Prérequis** : ajouter `minio-repertoire` et `minio-api-repertoire` dans DuckDNS (même IP que repertoire-app)
+- **Prérequis** : ajouter `minio-repertoire` dans DuckDNS (même IP que repertoire-app)
+- **Chart** : Bitnami – la console se connecte à l’API S3 en interne (pas besoin d’exposer l’API)
 
 ## Déploiement
 
