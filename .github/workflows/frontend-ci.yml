@@ -337,6 +337,55 @@ jobs:
               - repertoire-app.duckdns.org
           EOF
 
+      - name: Install Prometheus + Grafana (Phase 8)
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts --force-update
+          helm repo update
+          kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+          helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+            -n monitoring \
+            --set prometheus.prometheusSpec.retention=7d \
+            --set grafana.adminPassword=repertoire-monitoring \
+            --set grafana.persistence.enabled=false \
+            --wait --timeout 5m || true
+
+      - name: Exposer Grafana (IngressRoute)
+        run: |
+          kubectl delete certificate grafana-tls -n monitoring --ignore-not-found=true --wait=false 2>/dev/null || true
+          sleep 2
+          kubectl apply -f - <<'GRAFANAEOF'
+          apiVersion: cert-manager.io/v1
+          kind: Certificate
+          metadata:
+            name: grafana-tls
+            namespace: monitoring
+          spec:
+            secretName: grafana-tls
+            issuerRef:
+              name: letsencrypt-prod
+              kind: ClusterIssuer
+            dnsNames:
+              - grafana-repertoire.duckdns.org
+          ---
+          apiVersion: traefik.io/v1alpha1
+          kind: IngressRoute
+          metadata:
+            name: grafana
+            namespace: monitoring
+          spec:
+            entryPoints:
+              - web
+              - websecure
+            routes:
+              - match: Host(`grafana-repertoire.duckdns.org`) && PathPrefix(`/`)
+                kind: Rule
+                services:
+                  - name: kube-prometheus-stack-grafana
+                    port: 80
+            tls:
+              secretName: grafana-tls
+          GRAFANAEOF
+
       - name: Deploy / Upgrade Helm
         run: |
           helm upgrade --install repertoire ./helm/repertoire \

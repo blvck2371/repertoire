@@ -64,8 +64,8 @@
 - [ ] Audit trail des accès
 
 ### PHASE 8 – Monitoring & logging (Prometheus, Grafana, ELK)
-- [ ] Collecte des métriques via Prometheus
-- [ ] Dashboards par service via Grafana
+- [x] Collecte des métriques via Prometheus (kube-prometheus-stack)
+- [x] Dashboards par service via Grafana
 - [ ] Alerting proactif (Alertmanager)
 - [ ] Centralisation des logs avec ELK Stack
 - [ ] Analyse des performances et détection anomalies
@@ -123,6 +123,7 @@ npm run test:e2e       # Lancer les tests E2E
 - **Phase 1 :** Créer les branches `preprod` et `prod` sur GitHub si elles n’existent pas
 - **Phase 4 :** Installer Harbor + configurer GitHub – [Guide DigitalOcean](docs/HARBOR-DIGITALOCEAN.md) | [HTTPS](docs/HARBOR-HTTPS.md) | [Référence](docs/HARBOR-SETUP.md)
 - **Phase 5 :** Créer un cluster DOKS + déployer – voir [docs/KUBERNETES-DIGITALOCEAN.md](docs/KUBERNETES-DIGITALOCEAN.md)
+- **Phase 8 :** Ajouter `grafana-repertoire` dans DuckDNS (même IP que repertoire-app) pour accéder à Grafana en HTTPS
 - **Phase 10 :** Créer les Droplets DigitalOcean (8 vCores, 32 Go RAM, 1 To SSD)
 
 ---
@@ -144,3 +145,11 @@ git push origin develop
 ```
 
 **Activer le déploiement auto sur K8s :** voir [docs/DEPLOY-AUTO.md](docs/DEPLOY-AUTO.md)
+
+## Monitoring (Phase 8)
+
+| Service | URL | Identifiants |
+|---------|-----|--------------|
+| Grafana | https://grafana-repertoire.duckdns.org | admin / repertoire-monitoring |
+
+**Prérequis :** ajouter le sous-domaine `grafana-repertoire` dans DuckDNS (même IP que repertoire-app).
