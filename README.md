@@ -33,11 +33,12 @@
 - [ ] Versionnement des images selon branche *(Phase 4 – CD)*
 
 ### PHASE 4 – Registry privé (Harbor)
-- [ ] Installation serveur Harbor
-- [ ] Projets distincts (dev, preprod, prod)
-- [ ] Scan automatique des vulnérabilités
-- [ ] Gestion des accès par projet
-- [ ] Stockage sécurisé des images
+- [ ] Installation serveur Harbor *(manuel sur VPS – voir [docs/HARBOR-SETUP.md](docs/HARBOR-SETUP.md))*
+- [x] Projets distincts (dev, preprod, prod) – mapping branche → projet
+- [x] Push automatique des images vers Harbor (si secrets configurés)
+- [ ] Scan automatique des vulnérabilités *(configurer dans Harbor)*
+- [ ] Gestion des accès par projet *(configurer dans Harbor)*
+- [x] Stockage sécurisé des images *(Harbor + secrets GitHub)*
 
 ### PHASE 5 – Orchestration (Kubernetes + Helm)
 - [ ] Cluster Kubernetes (3 nœuds minimum)
@@ -113,6 +114,18 @@ npm run test:e2e       # Lancer les tests E2E
 ## À faire manuellement (Digital Ocean, GitHub, VPS)
 
 - **Phase 1 :** Créer les branches `preprod` et `prod` sur GitHub si elles n’existent pas
-- **Phase 4 :** Installer Harbor sur le VPS
+- **Phase 4 :** Installer Harbor sur le VPS + configurer les secrets GitHub (`HARBOR_URL`, `HARBOR_USERNAME`, `HARBOR_PASSWORD`) – voir [docs/HARBOR-SETUP.md](docs/HARBOR-SETUP.md)
 - **Phase 5 :** Provisionner le cluster Kubernetes (3 nœuds min.)
 - **Phase 10 :** Créer les Droplets DigitalOcean (8 vCores, 32 Go RAM, 1 To SSD)
+
+---
+
+## Branches et push
+
+| Branche   | Quand pousser                    | Effet CI                          |
+|-----------|----------------------------------|-----------------------------------|
+| `develop` | Après chaque feature/fix         | Lint, tests, build, E2E, push Harbor (dev) |
+| `preprod` | Après validation develop         | Idem + push Harbor (preprod)      |
+| `prod`    | Après validation preprod         | Idem + push Harbor (prod)        |
+
+**Workflow :** `develop` → merge PR → `preprod` → merge PR → `prod`
