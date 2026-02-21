@@ -8,7 +8,7 @@ describe('App', () => {
   });
 
   it('affiche le titre et le formulaire', async () => {
-    global.fetch = vi.fn()
+    globalThis.fetch = vi.fn()
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) });
 
     render(<App />);
@@ -21,7 +21,7 @@ describe('App', () => {
   });
 
   it('affiche Chargement... puis la liste', async () => {
-    global.fetch = vi.fn()
+    globalThis.fetch = vi.fn()
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) });
 
     render(<App />);
@@ -37,7 +37,7 @@ describe('App', () => {
     const contacts = [
       { _id: '1', nom: 'Dupont', prenom: 'Jean', telephone: '06', email: 'j@t.fr' }
     ];
-    global.fetch = vi.fn()
+    globalThis.fetch = vi.fn()
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(contacts) });
 
     render(<App />);
@@ -48,7 +48,7 @@ describe('App', () => {
   });
 
   it('affiche une erreur si le chargement échoue', async () => {
-    global.fetch = vi.fn().mockRejectedValueOnce(new Error('Erreur réseau'));
+    globalThis.fetch = vi.fn().mockRejectedValueOnce(new Error('Erreur réseau'));
 
     render(<App />);
 
@@ -58,7 +58,7 @@ describe('App', () => {
   });
 
   it('crée un contact via le formulaire', async () => {
-    global.fetch = vi.fn()
+    globalThis.fetch = vi.fn()
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) })
       .mockResolvedValueOnce({ ok: true })
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) });
@@ -76,7 +76,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }));
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/api/contacts', expect.objectContaining({
+      expect(globalThis.fetch).toHaveBeenCalledWith('/api/contacts', expect.objectContaining({
         method: 'POST',
         body: expect.stringContaining('Martin')
       }));
