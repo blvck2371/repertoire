@@ -107,9 +107,16 @@ docker compose up -d
 ## Tests E2E (Playwright)
 
 ```bash
-docker compose up -d   # Démarrer la stack
+docker compose up -d   # Démarrer la stack (ou docker compose -f docker/backend/docker-compose.yml -f docker/frontend/docker-compose.yml up -d)
 npm run test:e2e       # Lancer les tests E2E
 ```
+
+## Structure Docker
+
+| Dossier | Contenu |
+|--------|---------|
+| `docker/backend/` | MongoDB + API (docker-compose.yml) |
+| `docker/frontend/` | Frontend (à combiner avec backend) |
 
 ## À faire manuellement (Digital Ocean, GitHub, VPS)
 

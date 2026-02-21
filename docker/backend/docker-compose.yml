@@ -1,6 +1,3 @@
-# Stack complète - combine docker/backend et docker/frontend
-# Pour développement local : docker compose up -d
-
 services:
   mongodb:
     image: mongo:7
@@ -17,7 +14,9 @@ services:
 
   backend:
     image: repertoire-backend:test
-    build: ./backend
+    build:
+      context: ../../backend
+      dockerfile: ../../backend/Dockerfile
     container_name: repertoire-backend
     ports:
       - "3001:3001"
@@ -28,18 +27,5 @@ services:
       mongodb:
         condition: service_healthy
 
-  frontend:
-    image: repertoire-frontend:test
-    build: ./frontend
-    container_name: repertoire-frontend
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-
 volumes:
   mongodb_data:
-
-
-
-
