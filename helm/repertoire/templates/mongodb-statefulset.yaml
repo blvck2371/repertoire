@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: mongodb
-          image: {{ include "repertoire.image" (merge (dict "repository" .Values.mongodb.image.repository "tag" .Values.mongodb.image.tag) .) }}
+          image: {{ include "repertoire.mongodb.image" . }}
           imagePullPolicy: {{ .Values.mongodb.image.pullPolicy }}
           ports:
             - name: mongodb
@@ -66,3 +66,6 @@ spec:
           requests:
             storage: {{ .Values.mongodb.persistence.size }}
   {{- end }}
+
+
+

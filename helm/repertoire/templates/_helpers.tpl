@@ -57,7 +57,7 @@ app.kubernetes.io/component: mongodb
 {{- end }}
 
 {{/*
-Create image name with optional registry
+Create image name with optional registry (backend, frontend)
 */}}
 {{- define "repertoire.image" -}}
 {{- if .Values.imageRegistry -}}
@@ -65,4 +65,11 @@ Create image name with optional registry
 {{- else -}}
 {{ .repository }}:{{ .tag | default .Chart.AppVersion }}
 {{- end }}
+{{- end }}
+
+{{/*
+MongoDB image - toujours Docker Hub (pas Harbor)
+*/}}
+{{- define "repertoire.mongodb.image" -}}
+{{ .Values.mongodb.image.repository }}:{{ .Values.mongodb.image.tag | default "7" }}
 {{- end }}
