@@ -4,13 +4,13 @@ test.describe('Répertoire Téléphonique - CRUD', () => {
   test('affiche la page et le formulaire', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('h1')).toContainText('Répertoire Téléphonique');
-    await expect(page.getByPlaceholder('Dupont')).toBeVisible();
+    await expect(page.getByPlaceholder('Dupont', { exact: true })).toBeVisible();
   });
 
   test('crée un nouveau contact', async ({ page }) => {
     await page.goto('/');
-    await page.getByPlaceholder('Dupont').fill('Dupont');
-    await page.getByPlaceholder('Jean').fill('Jean');
+    await page.getByPlaceholder('Dupont', { exact: true }).fill('Dupont');
+    await page.getByPlaceholder('Jean', { exact: true }).fill('Jean');
     await page.getByPlaceholder('06 12 34 56 78').fill('0612345678');
     await page.getByPlaceholder('jean.dupont@email.com').fill('jean.dupont@test.fr');
     await page.getByRole('button', { name: 'Ajouter' }).click();
@@ -19,8 +19,8 @@ test.describe('Répertoire Téléphonique - CRUD', () => {
 
   test('supprime un contact', async ({ page }) => {
     await page.goto('/');
-    await page.getByPlaceholder('Dupont').fill('ASupprimer');
-    await page.getByPlaceholder('Jean').fill('Test');
+    await page.getByPlaceholder('Dupont', { exact: true }).fill('ASupprimer');
+    await page.getByPlaceholder('Jean', { exact: true }).fill('Test');
     await page.getByPlaceholder('06 12 34 56 78').fill('0699999999');
     await page.getByPlaceholder('jean.dupont@email.com').fill('supprimer@test.fr');
     await page.getByRole('button', { name: 'Ajouter' }).click();
