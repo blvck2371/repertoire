@@ -50,6 +50,11 @@ describe('API Répertoire', () => {
       expect(res.body.prenom).toBe('Jean');
       expect(res.body._id).toBeDefined();
     });
+    it('retourne 400 si données invalides', async () => {
+      const res = await request(app).post('/api/contacts').send({ nom: '' });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBeDefined();
+    });
   });
 
   describe('GET /api/contacts/:id', () => {
@@ -65,6 +70,10 @@ describe('API Répertoire', () => {
     it('retourne 404 si contact inexistant', async () => {
       const res = await request(app).get('/api/contacts/000000000000000000000000');
       expect(res.status).toBe(404);
+    });
+    it('retourne 500 si ID invalide', async () => {
+      const res = await request(app).get('/api/contacts/invalid-id');
+      expect(res.status).toBe(500);
     });
   });
 
@@ -86,6 +95,21 @@ describe('API Répertoire', () => {
       });
       expect(res.status).toBe(404);
     });
+    it('retourne 400 si données invalides', async () => {
+      const create = await request(app).post('/api/contacts').send({
+        nom: 'Val', prenom: 'Test', telephone: '0612345678', email: 'val@test.com'
+      });
+      const res = await request(app).put(`/api/contacts/${create.body._id}`).send({
+        nom: '', prenom: '', telephone: '', email: ''
+      });
+      expect(res.status).toBe(400);
+    });
+    it('retourne 500 si ID invalide', async () => {
+      const res = await request(app).put('/api/contacts/invalid-id').send({
+        nom: 'X', prenom: 'Y', telephone: '06', email: 'x@y.com'
+      });
+      expect([400, 500]).toContain(res.status);
+    });
   });
 
   describe('DELETE /api/contacts/:id', () => {
@@ -102,6 +126,10 @@ describe('API Répertoire', () => {
     it('retourne 404 si contact inexistant', async () => {
       const res = await request(app).delete('/api/contacts/000000000000000000000000');
       expect(res.status).toBe(404);
+    });
+    it('retourne 500 si ID invalide', async () => {
+      const res = await request(app).delete('/api/contacts/invalid-id');
+      expect(res.status).toBe(500);
     });
   });
 });
