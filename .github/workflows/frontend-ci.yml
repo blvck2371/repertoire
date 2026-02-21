@@ -456,6 +456,7 @@ jobs:
             --set rootPassword=minioadmin \
             --set persistence.enabled=false \
             --set mode=standalone \
+            --set "environment.MINIO_BROWSER_REDIRECT_URL=https://minio-repertoire.duckdns.org/" \
             --wait --timeout 2m || true
 
       - name: Create backup credentials secret
@@ -497,7 +498,7 @@ jobs:
               - match: Host(`minio-repertoire.duckdns.org`) && PathPrefix(`/`)
                 kind: Rule
                 services:
-                  - name: repertoire-minio
+                  - name: repertoire-minio-console
                     port: 9001
             tls:
               secretName: minio-tls
