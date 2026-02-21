@@ -85,3 +85,16 @@ mongodb:
     enabled: true
     size: 5Gi
   database: repertoire
+
+# Phase 9 – Backups (Restic + MinIO)
+backup:
+  enabled: false  # activer dans values-dev.yaml si MinIO déployé
+  schedule: "0 2 * * *"  # 2h du matin quotidien
+  retention:
+    keepDaily: 7
+    keepWeekly: 4
+  minioHost: repertoire-minio  # service MinIO dans le namespace
+  image:
+    repository: repertoire-backup
+    tag: latest
+    pullPolicy: IfNotPresent

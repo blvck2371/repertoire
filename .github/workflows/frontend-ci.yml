@@ -267,6 +267,13 @@ jobs:
         run: |
           kubectl create namespace repertoire-dev --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Login to Harbor (pour push backup)
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.HARBOR_URL }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
       - name: Create Harbor secret if not exists
         run: |
           kubectl create secret docker-registry harbor-creds \
@@ -275,6 +282,12 @@ jobs:
             --docker-password=${{ secrets.HARBOR_PASSWORD }} \
             -n repertoire-dev \
             --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Build et push image backup (Phase 9)
+        run: |
+          docker build -t repertoire-backup:latest -f docker/backup/Dockerfile docker/backup
+          docker tag repertoire-backup:latest ${{ secrets.HARBOR_URL }}/dev/repertoire-backup:latest
+          docker push ${{ secrets.HARBOR_URL }}/dev/repertoire-backup:latest
 
       - name: Install Traefik (Ingress controller)
         run: |
@@ -406,6 +419,26 @@ jobs:
             tls:
               secretName: grafana-tls
           GRAFANAEOF
+
+      - name: Install MinIO (Phase 9 – stockage S3)
+        run: |
+          helm repo add minio https://charts.min.io/ --force-update
+          helm repo update
+          helm upgrade --install repertoire-minio minio/minio \
+            -n repertoire-dev \
+            --set rootUser=minioadmin \
+            --set rootPassword=minioadmin \
+            --set persistence.enabled=false \
+            --set mode=standalone \
+            --wait --timeout 2m || true
+
+      - name: Create backup credentials secret (Phase 9)
+        run: |
+          kubectl create secret generic repertoire-backup-credentials -n repertoire-dev \
+            --from-literal=minio-access-key=minioadmin \
+            --from-literal=minio-secret-key=minioadmin \
+            --from-literal=restic-password=repertoire-backup-dev \
+            --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy / Upgrade Helm
         run: |

@@ -71,12 +71,12 @@
 - [ ] Analyse des performances et détection anomalies
 
 ### PHASE 9 – Backups & restauration (Restic + MinIO)
-- [ ] Backups quotidiens des données production
-- [ ] Backups hebdomadaires dev/preprod
-- [ ] Stockage chiffré via MinIO (compatible S3)
-- [ ] Sauvegardes incrémentales versionnées
+- [x] Backups quotidiens des données production
+- [x] Backups hebdomadaires dev/preprod
+- [x] Stockage chiffré via MinIO (compatible S3)
+- [x] Sauvegardes incrémentales versionnées (Restic)
 - [ ] Tests de restauration mensuels en sandbox
-- [ ] Automatisation via conteneurs planifiés (cron + Docker)
+- [x] Automatisation via CronJob Kubernetes
 
 ### PHASE 10 – Infrastructure & hébergement (DigitalOcean)
 - [ ] Infrastructure Cloud (DigitalOcean Optimized Droplets)
@@ -124,6 +124,7 @@ npm run test:e2e       # Lancer les tests E2E
 - **Phase 4 :** Installer Harbor + configurer GitHub – [Guide DigitalOcean](docs/HARBOR-DIGITALOCEAN.md) | [HTTPS](docs/HARBOR-HTTPS.md) | [Référence](docs/HARBOR-SETUP.md)
 - **Phase 5 :** Créer un cluster DOKS + déployer – voir [docs/KUBERNETES-DIGITALOCEAN.md](docs/KUBERNETES-DIGITALOCEAN.md)
 - **Phase 8 :** Ajouter `grafana-repertoire` dans DuckDNS (même IP que repertoire-app) pour accéder à Grafana en HTTPS
+- **Phase 9 :** Backups : MinIO + CronJob déployés automatiquement. Voir [docs/BACKUP-RESTORE.md](docs/BACKUP-RESTORE.md)
 - **Phase 2 :** Configurer les notifications CI : ajouter le secret `SLACK_WEBHOOK_URL` ou `DISCORD_WEBHOOK_URL` dans GitHub (Settings → Secrets)
 - **Phase 10 :** Créer les Droplets DigitalOcean (8 vCores, 32 Go RAM, 1 To SSD)
 

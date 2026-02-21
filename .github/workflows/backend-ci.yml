@@ -171,6 +171,14 @@ jobs:
           docker tag mongo:7 ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/mongo:7
           docker push ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/mongo:7
 
+      - name: Build et push image backup (Phase 9)
+        run: |
+          docker build -t repertoire-backup:test -f docker/backup/Dockerfile docker/backup
+          docker tag repertoire-backup:test ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/repertoire-backup:${{ steps.harbor.outputs.tag }}
+          docker tag repertoire-backup:test ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/repertoire-backup:latest
+          docker push ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/repertoire-backup:${{ steps.harbor.outputs.tag }}
+          docker push ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/repertoire-backup:latest
+
   # 6. Notifications (Phase 2) – Slack ou Discord
   notify:
     name: Notify

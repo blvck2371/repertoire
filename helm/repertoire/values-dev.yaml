@@ -32,3 +32,8 @@ frontend:
 mongodb:
   persistence:
     enabled: false  # emptyDir pour dev
+
+# Phase 9 – Backups (activer si MinIO déployé)
+backup:
+  enabled: true
+  schedule: "0 2 * * 0"  # dimanche 2h (hebdo pour dev)
