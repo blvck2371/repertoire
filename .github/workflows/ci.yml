@@ -109,7 +109,8 @@ jobs:
   push-to-harbor:
     runs-on: ubuntu-latest
     needs: build
-    if: github.event_name == 'push' && secrets.HARBOR_URL != ''
+    # Activer avec une variable : Settings → Variables → HARBOR_ENABLED = true
+    if: github.event_name == 'push' && vars.HARBOR_ENABLED == 'true'
     steps:
       - uses: actions/checkout@v4
 

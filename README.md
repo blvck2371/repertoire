@@ -43,11 +43,11 @@
 ### PHASE 5 – Orchestration (Kubernetes + Helm)
 - [ ] Cluster Kubernetes (3 nœuds minimum)
 - [ ] Namespaces : dev / preprod / prod
-- [ ] Backend et Frontend en Deployment
-- [ ] Base MongoDB en StatefulSet
-- [ ] Helm Charts pour packaging et déploiement
-- [ ] Autoscaling HPA
-- [ ] Rolling Update + Rollback automatique
+- [x] Backend et Frontend en Deployment
+- [x] Base MongoDB en StatefulSet
+- [x] Helm Charts pour packaging et déploiement – voir [docs/KUBERNETES.md](docs/KUBERNETES.md)
+- [x] Autoscaling HPA
+- [x] Rolling Update + Rollback automatique (Helm)
 
 ### PHASE 6 – Reverse proxy & sécurité (Traefik + TLS)
 - [ ] Déploiement Traefik sur chaque environnement
@@ -114,8 +114,8 @@ npm run test:e2e       # Lancer les tests E2E
 ## À faire manuellement (Digital Ocean, GitHub, VPS)
 
 - **Phase 1 :** Créer les branches `preprod` et `prod` sur GitHub si elles n’existent pas
-- **Phase 4 :** Installer Harbor sur le VPS + configurer les secrets GitHub (`HARBOR_URL`, `HARBOR_USERNAME`, `HARBOR_PASSWORD`) – voir [docs/HARBOR-SETUP.md](docs/HARBOR-SETUP.md)
-- **Phase 5 :** Provisionner le cluster Kubernetes (3 nœuds min.)
+- **Phase 4 :** Installer Harbor + configurer GitHub – [Guide DigitalOcean pas à pas](docs/HARBOR-DIGITALOCEAN.md) | [Référence complète](docs/HARBOR-SETUP.md)
+- **Phase 5 :** Provisionner le cluster Kubernetes (3 nœuds min.) – déploiement : `helm install repertoire ./helm/repertoire -n repertoire-dev -f helm/repertoire/values-dev.yaml`
 - **Phase 10 :** Créer les Droplets DigitalOcean (8 vCores, 32 Go RAM, 1 To SSD)
 
 ---

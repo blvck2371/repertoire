@@ -1,0 +1,18 @@
+# Valeurs pour l'environnement dev (develop)
+environment: dev
+
+imageRegistry: ""  # ou harbor.example.com/dev
+
+backend:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+
+frontend:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+
+mongodb:
+  persistence:
+    enabled: false  # emptyDir pour dev

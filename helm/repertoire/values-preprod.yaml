@@ -1,0 +1,23 @@
+# Valeurs pour l'environnement preprod
+environment: preprod
+
+imageRegistry: ""  # ou harbor.example.com/preprod
+
+backend:
+  replicaCount: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+
+frontend:
+  replicaCount: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+
+mongodb:
+  persistence:
+    enabled: true
+    size: 10Gi
