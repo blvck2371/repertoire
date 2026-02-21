@@ -468,17 +468,17 @@ jobs:
           fi
 
       - name: Notifier Slack
-        if: secrets.SLACK_WEBHOOK_URL != ''
         run: |
+          [[ -z "${{ secrets.SLACK_WEBHOOK_URL }}" ]] && exit 0
           curl -sS -X POST -H 'Content-type: application/json' \
             --data '{"text":"${{ steps.status.outputs.emoji }} *Frontend CI* – ${{ steps.status.outputs.status }}\nBranche: `${{ github.ref_name }}` | Commit: `${{ github.sha }}`\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Voir le workflow>"}' \
-            "${{ secrets.SLACK_WEBHOOK_URL }}"
+            "${{ secrets.SLACK_WEBHOOK_URL }}" || true
 
       - name: Notifier Discord
-        if: secrets.DISCORD_WEBHOOK_URL != ''
         run: |
+          [[ -z "${{ secrets.DISCORD_WEBHOOK_URL }}" ]] && exit 0
           curl -sS -X POST -H 'Content-type: application/json' \
             --data '{"embeds":[{"title":"${{ steps.status.outputs.emoji }} Frontend CI – ${{ steps.status.outputs.status }}","color":${{ steps.status.outputs.color }},"fields":[{"name":"Branche","value":"`${{ github.ref_name }}`","inline":true},{"name":"Commit","value":"`${{ github.sha }}`","inline":true},{"name":"Workflow","value":"[Voir](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})","inline":false}]}]}' \
-            "${{ secrets.DISCORD_WEBHOOK_URL }}"
+            "${{ secrets.DISCORD_WEBHOOK_URL }}" || true
 
 
