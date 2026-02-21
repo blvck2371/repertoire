@@ -21,7 +21,9 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
 
       - name: Load backend image
-        run: gunzip -c backend-image/*.tar.gz | docker load
+        run: |
+          IMG=$(find . -name "*.tar.gz" -type f | head -1)
+          gunzip -c "$IMG" | docker load
 
       - name: Set Harbor project from branch
         id: harbor
