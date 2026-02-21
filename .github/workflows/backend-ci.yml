@@ -147,6 +147,7 @@ jobs:
           echo "tag=${{ github.ref_name }}-${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
 
       - name: Configure Docker for Harbor (HTTP ou HTTPS auto-signé)
+        if: vars.HARBOR_HTTPS != 'true'
         run: |
           echo '{"insecure-registries":["${{ secrets.HARBOR_URL }}"]}' | sudo tee /etc/docker/daemon.json
           sudo systemctl restart docker

@@ -33,11 +33,11 @@
 - [ ] Versionnement des images selon branche *(Phase 4 – CD)*
 
 ### PHASE 4 – Registry privé (Harbor)
-- [ ] Installation serveur Harbor *(manuel sur VPS – voir [docs/HARBOR-SETUP.md](docs/HARBOR-SETUP.md))*
+- [ ] Installation serveur Harbor → **[Checklist complète](docs/PHASE4-HARBOR.md)** | [Setup](docs/HARBOR-SETUP.md) | [DigitalOcean](docs/HARBOR-DIGITALOCEAN.md) | [HTTPS](docs/HARBOR-HTTPS.md)
 - [x] Projets distincts (dev, preprod, prod) – mapping branche → projet
 - [x] Push automatique des images vers Harbor (si secrets configurés)
-- [ ] Scan automatique des vulnérabilités *(configurer dans Harbor)*
-- [ ] Gestion des accès par projet *(configurer dans Harbor)*
+- [ ] Scan vulnérabilités (Trivy) – voir [PHASE4-HARBOR.md](docs/PHASE4-HARBOR.md) §6
+- [ ] Gestion des accès – voir [PHASE4-HARBOR.md](docs/PHASE4-HARBOR.md) §7
 - [x] Stockage sécurisé des images *(Harbor + secrets GitHub)*
 
 ### PHASE 5 – Orchestration (Kubernetes + Helm)
@@ -121,7 +121,7 @@ npm run test:e2e       # Lancer les tests E2E
 ## À faire manuellement (Digital Ocean, GitHub, VPS)
 
 - **Phase 1 :** Créer les branches `preprod` et `prod` sur GitHub si elles n’existent pas
-- **Phase 4 :** Installer Harbor + configurer GitHub – [Guide DigitalOcean](docs/HARBOR-DIGITALOCEAN.md) | [HTTPS](docs/HARBOR-HTTPS.md) | [Référence](docs/HARBOR-SETUP.md)
+- **Phase 4 :** Installer Harbor – [Checklist Phase 4](docs/PHASE4-HARBOR.md) | [DigitalOcean](docs/HARBOR-DIGITALOCEAN.md) | [HTTPS](docs/HARBOR-HTTPS.md)
 - **Phase 5 :** Créer un cluster DOKS + déployer – voir [docs/KUBERNETES-DIGITALOCEAN.md](docs/KUBERNETES-DIGITALOCEAN.md)
 - **Phase 8 :** Ajouter `grafana-repertoire` dans DuckDNS (même IP que repertoire-app) pour accéder à Grafana en HTTPS
 - **Phase 9 :** Backups : MinIO (Bitnami) + CronJob déployés automatiquement. Ajouter `minio-repertoire` et `minio-api-repertoire` dans DuckDNS pour accès HTTPS. Voir [docs/BACKUP-RESTORE.md](docs/BACKUP-RESTORE.md)
@@ -147,6 +147,8 @@ git push origin develop
 ```
 
 **Activer le déploiement auto sur K8s :** voir [docs/DEPLOY-AUTO.md](docs/DEPLOY-AUTO.md)
+
+**Identifiants :** voir [docs/ACCESS-CREDENTIALS.md](docs/ACCESS-CREDENTIALS.md) pour tous les accès et mots de passe.
 
 ## Monitoring (Phase 8)
 
