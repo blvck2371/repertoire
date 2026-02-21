@@ -10,7 +10,17 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
-      exclude: ['node_modules/', 'src/main.jsx'],
+      exclude: [
+        'node_modules/',
+        'src/main.jsx',
+        'src/main.ts',
+        'src/counter.ts',
+        'src/test/**',
+        '**/*.css',
+        '**/__tests__/**',
+        '**/*.cjs',
+        '**/vite.config.js'
+      ],
       thresholds: { branches: 70, functions: 70, lines: 70, statements: 70 }
     }
   }
