@@ -1,0 +1,67 @@
+# MinIO S3 - déploiement simple (image officielle, sans Helm)
+# Console: minio-repertoire.duckdns.org | API: minio-api-repertoire.duckdns.org
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: repertoire-minio
+  namespace: repertoire-dev
+  labels:
+    app: repertoire-minio
+spec:
+  type: ClusterIP
+  ports:
+    - name: api
+      port: 9000
+      targetPort: 9000
+    - name: console
+      port: 9001
+      targetPort: 9001
+  selector:
+    app: repertoire-minio
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: repertoire-minio
+  namespace: repertoire-dev
+  labels:
+    app: repertoire-minio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: repertoire-minio
+  template:
+    metadata:
+      labels:
+        app: repertoire-minio
+    spec:
+      containers:
+        - name: minio
+          image: minio/minio:latest
+          args:
+            - server
+            - /data
+            - --console-address
+            - ":9001"
+          env:
+            - name: MINIO_ROOT_USER
+              value: minioadmin
+            - name: MINIO_ROOT_PASSWORD
+              value: minioadmin
+            - name: MINIO_BROWSER_REDIRECT_URL
+              value: "https://minio-repertoire.duckdns.org/"
+            - name: MINIO_SERVER_URL
+              value: "https://minio-api-repertoire.duckdns.org"
+          ports:
+            - containerPort: 9000
+              name: api
+            - containerPort: 9001
+              name: console
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          emptyDir: {}

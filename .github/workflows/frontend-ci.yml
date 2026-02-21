@@ -446,23 +446,39 @@ jobs:
           docker tag repertoire-backup:latest ${{ secrets.HARBOR_URL }}/dev/repertoire-backup:latest
           docker push ${{ secrets.HARBOR_URL }}/dev/repertoire-backup:latest
 
-      - name: Install MinIO (Bitnami – stockage S3)
+      - name: Deploy MinIO (image officielle, sans Helm)
         run: |
-          helm repo add bitnami https://charts.bitnami.com/bitnami --force-update
-          helm repo update
-          helm upgrade --install repertoire-minio bitnami/minio \
-            -n repertoire-dev \
-            --set auth.rootUser=minioadmin \
-            --set auth.rootPassword=minioadmin \
-            --set persistence.enabled=false \
-            --set defaultBuckets=repertoire-backups \
-            --set 'extraEnvVars[0].name=MINIO_BROWSER_REDIRECT_URL' \
-            --set 'extraEnvVars[0].value=https://minio-repertoire.duckdns.org/' \
-            --set 'extraEnvVars[1].name=MINIO_SERVER_URL' \
-            --set 'extraEnvVars[1].value=https://minio-api-repertoire.duckdns.org' \
-            --set 'console.extraEnvVars[0].name=MINIO_SERVER_URL' \
-            --set 'console.extraEnvVars[0].value=https://minio-api-repertoire.duckdns.org' \
-            --wait --timeout 2m || true
+          helm uninstall repertoire-minio -n repertoire-dev --ignore-not-found=true 2>/dev/null || true
+          sleep 5
+          kubectl apply -f helm/repertoire/minio/minio-deployment.yaml
+          kubectl rollout status deployment/repertoire-minio -n repertoire-dev --timeout=2m
+      - name: Créer bucket repertoire-backups
+        run: |
+          kubectl delete job minio-init-bucket -n repertoire-dev --ignore-not-found=true
+          kubectl apply -f - <<'BUCKET'
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: minio-init-bucket
+            namespace: repertoire-dev
+          spec:
+            ttlSecondsAfterFinished: 120
+            template:
+              spec:
+                restartPolicy: OnFailure
+                containers:
+                  - name: mc
+                    image: minio/mc:latest
+                    command:
+                      - /bin/sh
+                      - -c
+                      - |
+                        sleep 10
+                        mc alias set m http://repertoire-minio:9000 minioadmin minioadmin
+                        mc mb m/repertoire-backups --ignore-existing
+                        echo Bucket OK
+          BUCKET
+          kubectl wait --for=condition=complete job/minio-init-bucket -n repertoire-dev --timeout=90s || true
 
       - name: Create backup credentials secret
         run: |
@@ -517,8 +533,8 @@ jobs:
               - match: Host(`minio-repertoire.duckdns.org`) && PathPrefix(`/`)
                 kind: Rule
                 services:
-                  - name: repertoire-minio-console
-                    port: 9090
+                  - name: repertoire-minio
+                    port: 9001
             tls:
               secretName: minio-tls
           ---
