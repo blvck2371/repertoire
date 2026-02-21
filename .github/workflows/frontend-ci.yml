@@ -456,6 +456,10 @@ jobs:
             --set auth.rootPassword=minioadmin \
             --set persistence.enabled=false \
             --set defaultBuckets=repertoire-backups \
+            --set 'extraEnvVars[0].name=MINIO_BROWSER_REDIRECT_URL' \
+            --set 'extraEnvVars[0].value=https://minio-repertoire.duckdns.org/' \
+            --set 'extraEnvVars[1].name=MINIO_SERVER_URL' \
+            --set 'extraEnvVars[1].value=https://minio-api-repertoire.duckdns.org' \
             --set 'console.extraEnvVars[0].name=MINIO_SERVER_URL' \
             --set 'console.extraEnvVars[0].value=https://minio-api-repertoire.duckdns.org' \
             --wait --timeout 2m || true
@@ -536,6 +540,9 @@ jobs:
             tls:
               secretName: minio-api-tls
           MINIOEOF
+
+      - name: Attendre les certificats MinIO (Let's Encrypt)
+        run: sleep 45
 
   # 8c. Deploy App – Helm repertoire
   deploy:

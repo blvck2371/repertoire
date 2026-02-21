@@ -167,4 +167,4 @@ git push origin develop
 | MinIO (console) | https://minio-repertoire.duckdns.org | minioadmin / minioadmin |
 | MinIO (API S3) | https://minio-api-repertoire.duckdns.org | — |
 
-**Prérequis :** ajouter `minio-repertoire` et `minio-api-repertoire` dans DuckDNS (même IP que repertoire-app). Chart Bitnami – la console se connecte à l’API en interne.
+**Prérequis :** ajouter `minio-repertoire` et `minio-api-repertoire` dans DuckDNS (même IP que repertoire-app). La console appelle l'API – la console se connecte à l’API depuis le navigateur.
