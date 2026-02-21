@@ -281,7 +281,17 @@ jobs:
           helm upgrade --install repertoire ./helm/repertoire \
             -n repertoire-dev \
             -f helm/repertoire/values-dev.yaml \
-            --wait --timeout 10m
+            --timeout 3m
+          echo "Helm deploy terminé, attente des pods..."
+
+      - name: Wait for MongoDB
+        run: |
+          kubectl rollout status statefulset/repertoire-mongodb -n repertoire-dev --timeout=5m
+
+      - name: Wait for Backend and Frontend
+        run: |
+          kubectl rollout status deployment/repertoire-backend -n repertoire-dev --timeout=5m
+          kubectl rollout status deployment/repertoire-frontend -n repertoire-dev --timeout=5m
 
       - name: Debug pods (si échec)
         if: failure()
@@ -289,7 +299,7 @@ jobs:
           echo "=== Pods ==="
           kubectl get pods -n repertoire-dev -o wide
           echo "=== Events ==="
-          kubectl get events -n repertoire-dev --sort-by='.lastTimestamp' | tail -20
+          kubectl get events -n repertoire-dev --sort-by='.lastTimestamp' | tail -30
 
       - name: Restart deployments (pull latest images)
         run: |
@@ -297,4 +307,3 @@ jobs:
           kubectl rollout status deployment -n repertoire-dev -l app.kubernetes.io/instance=repertoire --timeout=5m
 
 
-          
