@@ -164,3 +164,9 @@ jobs:
           docker tag repertoire-backend:test ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/repertoire-backend:latest
           docker push ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/repertoire-backend:${{ steps.harbor.outputs.tag }}
           docker push ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/repertoire-backend:latest
+
+      - name: Push MongoDB to Harbor (évite rate limit Docker Hub)
+        run: |
+          docker pull mongo:7
+          docker tag mongo:7 ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/mongo:7
+          docker push ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/mongo:7

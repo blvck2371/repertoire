@@ -17,6 +17,12 @@ spec:
         app.kubernetes.io/component: mongodb
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range . }}
+        - name: {{ . }}
+        {{- end }}
+      {{- end }}
       containers:
         - name: mongodb
           image: {{ include "repertoire.mongodb.image" . }}

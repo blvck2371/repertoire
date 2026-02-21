@@ -4,6 +4,8 @@ environment: dev
 
 imageRegistry: "repertoire-harbor.duckdns.org/dev"
 imagePullSecrets: [harbor-creds]
+# MongoDB depuis Harbor (évite rate limit Docker Hub)
+mongodbImageRegistry: "repertoire-harbor.duckdns.org/dev"
 
 backend:
   replicaCount: 1
