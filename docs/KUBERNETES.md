@@ -2,6 +2,8 @@
 
 Ce document décrit le déploiement du Répertoire Téléphonique sur Kubernetes via Helm.
 
+> **Tu utilises DigitalOcean ?** → Voir le [guide DOKS pas à pas](KUBERNETES-DIGITALOCEAN.md)
+
 ## Prérequis
 
 - Cluster Kubernetes (3 nœuds minimum recommandé)
@@ -49,26 +51,19 @@ kubectl create namespace repertoire-preprod
 kubectl create namespace repertoire-prod
 ```
 
-### 2. Charger les images (si registry privé)
+### 2. Charger les images depuis Harbor
 
-Si vous utilisez Harbor, configurez `imageRegistry` dans les values :
-
-```yaml
-# values-dev.yaml
-imageRegistry: "harbor.example.com/dev"
-```
-
-Et créez un secret pour le pull :
+Les images sont sur Harbor (`46.101.199.158/dev`). Configurez le secret :
 
 ```bash
 kubectl create secret docker-registry harbor-creds \
-  --docker-server=harbor.example.com \
-  --docker-username=<user> \
-  --docker-password=<password> \
+  --docker-server=46.101.199.158 \
+  --docker-username=github-actions \
+  --docker-password=<mot_de_passe> \
   -n repertoire-dev
 ```
 
-Ajoutez `imagePullSecrets: [harbor-creds]` dans les Deployments si nécessaire.
+Le fichier `values-dev.yaml` est déjà configuré avec `imageRegistry: "46.101.199.158/dev"` et `imagePullSecrets: [harbor-creds]`.
 
 ### 3. Installer le chart
 

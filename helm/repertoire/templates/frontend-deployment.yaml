@@ -16,6 +16,10 @@ spec:
         app.kubernetes.io/component: frontend
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: frontend
           image: {{ include "repertoire.image" (merge (dict "repository" .Values.frontend.image.repository "tag" .Values.frontend.image.tag) .) }}

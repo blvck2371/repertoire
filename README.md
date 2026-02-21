@@ -41,7 +41,7 @@
 - [x] Stockage sécurisé des images *(Harbor + secrets GitHub)*
 
 ### PHASE 5 – Orchestration (Kubernetes + Helm)
-- [ ] Cluster Kubernetes (3 nœuds minimum)
+- [ ] Cluster Kubernetes (3 nœuds minimum) – [Guide DigitalOcean](docs/KUBERNETES-DIGITALOCEAN.md)
 - [ ] Namespaces : dev / preprod / prod
 - [x] Backend et Frontend en Deployment
 - [x] Base MongoDB en StatefulSet
@@ -122,21 +122,25 @@ npm run test:e2e       # Lancer les tests E2E
 
 - **Phase 1 :** Créer les branches `preprod` et `prod` sur GitHub si elles n’existent pas
 - **Phase 4 :** Installer Harbor + configurer GitHub – [Guide DigitalOcean pas à pas](docs/HARBOR-DIGITALOCEAN.md) | [Référence complète](docs/HARBOR-SETUP.md)
-- **Phase 5 :** Provisionner le cluster Kubernetes (3 nœuds min.) – déploiement : `helm install repertoire ./helm/repertoire -n repertoire-dev -f helm/repertoire/values-dev.yaml`
+- **Phase 5 :** Créer un cluster DOKS + déployer – voir [docs/KUBERNETES-DIGITALOCEAN.md](docs/KUBERNETES-DIGITALOCEAN.md)
 - **Phase 10 :** Créer les Droplets DigitalOcean (8 vCores, 32 Go RAM, 1 To SSD)
 
 ---
 
 ## Branches et push
 
-La CI s'exécute uniquement sur la branche **develop** :
+Sur **develop**, tout est automatisé à chaque push :
 
-| Branche   | Effet CI                          |
-|-----------|-----------------------------------|
-| `develop` | Lint, tests, build, E2E, push Harbor (dev) |
+| Étape | Action |
+|-------|--------|
+| CI | Lint, tests, build, scan, E2E |
+| CD | Push des images vers Harbor |
+| Deploy | Mise à jour Kubernetes (si activé) |
 
 ```bash
 git add .
 git commit -m "ton message"
 git push origin develop
 ```
+
+**Activer le déploiement auto sur K8s :** voir [docs/DEPLOY-AUTO.md](docs/DEPLOY-AUTO.md)

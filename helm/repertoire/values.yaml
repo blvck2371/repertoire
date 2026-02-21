@@ -3,9 +3,13 @@
 
 environment: dev
 
-# Image registry (Harbor or Docker Hub)
+# Image registry (Harbor ou Docker Hub)
+# Format: hostname/projet (ex: 46.101.199.158/dev)
 imageRegistry: ""
-# imageRegistry: "harbor.example.com/dev"
+
+# Secret pour pull depuis registry privé (Harbor)
+imagePullSecrets: []
+# imagePullSecrets: [harbor-creds]
 
 backend:
   image:

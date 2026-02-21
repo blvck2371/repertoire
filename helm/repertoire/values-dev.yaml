@@ -1,7 +1,9 @@
 # Valeurs pour l'environnement dev (develop)
+# Images depuis Harbor : 46.101.199.158/dev/repertoire-backend:latest
 environment: dev
 
-imageRegistry: ""  # ou harbor.example.com/dev
+imageRegistry: "46.101.199.158/dev"
+imagePullSecrets: [harbor-creds]
 
 backend:
   replicaCount: 1

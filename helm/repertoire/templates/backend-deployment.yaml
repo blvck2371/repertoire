@@ -16,6 +16,10 @@ spec:
         app.kubernetes.io/component: backend
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: backend
           image: {{ include "repertoire.image" (merge (dict "repository" .Values.backend.image.repository "tag" .Values.backend.image.tag) .) }}
