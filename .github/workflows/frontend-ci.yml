@@ -184,3 +184,48 @@ jobs:
       - name: Stop stack
         if: always()
         run: docker compose -f docker/backend/docker-compose.yml -f docker/frontend/docker-compose.yml --project-directory . down -v
+
+  # 7. CD - Push vers Harbor (uniquement sur push, si HARBOR_ENABLED)
+  frontend-cd:
+    name: CD (Push Harbor)
+    runs-on: ubuntu-latest
+    needs: frontend-docker
+    if: github.event_name == 'push' && vars.HARBOR_ENABLED == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download image
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-image
+
+      - name: Load image
+        run: |
+          IMG=$(find . -name "*.tar.gz" -type f | head -1)
+          gunzip -c "$IMG" | docker load
+
+      - name: Set Harbor project
+        id: harbor
+        run: |
+          case "${{ github.ref_name }}" in
+            develop) PROJECT="dev" ;;
+            preprod) PROJECT="preprod" ;;
+            prod)    PROJECT="prod" ;;
+            *)       PROJECT="dev" ;;
+          esac
+          echo "project=$PROJECT" >> $GITHUB_OUTPUT
+          echo "tag=${{ github.ref_name }}-${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+
+      - name: Login to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.HARBOR_URL }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Push to Harbor
+        run: |
+          docker tag repertoire-frontend:test ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/repertoire-frontend:${{ steps.harbor.outputs.tag }}
+          docker tag repertoire-frontend:test ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/repertoire-frontend:latest
+          docker push ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/repertoire-frontend:${{ steps.harbor.outputs.tag }}
+          docker push ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/repertoire-frontend:latest
