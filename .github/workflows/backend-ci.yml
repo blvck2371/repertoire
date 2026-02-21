@@ -170,3 +170,41 @@ jobs:
           docker pull mongo:7
           docker tag mongo:7 ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/mongo:7
           docker push ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/mongo:7
+
+  # 6. Notifications (Phase 2) – Slack ou Discord
+  notify:
+    name: Notify
+    runs-on: ubuntu-latest
+    needs: [backend-lint, backend-test, backend-build, backend-scan]
+    if: always()
+    steps:
+      - name: Déterminer le statut
+        id: status
+        run: |
+          FAILED=false
+          for r in "${{ needs.backend-lint.result }}" "${{ needs.backend-test.result }}" "${{ needs.backend-build.result }}" "${{ needs.backend-scan.result }}"; do
+            [[ "$r" == "failure" ]] && FAILED=true && break
+          done
+          if [[ "$FAILED" == "true" ]]; then
+            echo "status=ÉCHEC" >> $GITHUB_OUTPUT
+            echo "emoji=❌" >> $GITHUB_OUTPUT
+            echo "color=15158332" >> $GITHUB_OUTPUT
+          else
+            echo "status=Succès" >> $GITHUB_OUTPUT
+            echo "emoji=✅" >> $GITHUB_OUTPUT
+            echo "color=3066993" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Notifier Slack
+        if: secrets.SLACK_WEBHOOK_URL != ''
+        run: |
+          curl -sS -X POST -H 'Content-type: application/json' \
+            --data '{"text":"${{ steps.status.outputs.emoji }} *Backend CI* – ${{ steps.status.outputs.status }}\nBranche: `${{ github.ref_name }}` | Commit: `${{ github.sha }}`\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Voir le workflow>"}' \
+            "${{ secrets.SLACK_WEBHOOK_URL }}"
+
+      - name: Notifier Discord
+        if: secrets.DISCORD_WEBHOOK_URL != ''
+        run: |
+          curl -sS -X POST -H 'Content-type: application/json' \
+            --data '{"embeds":[{"title":"${{ steps.status.outputs.emoji }} Backend CI – ${{ steps.status.outputs.status }}","color":${{ steps.status.outputs.color }},"fields":[{"name":"Branche","value":"`${{ github.ref_name }}`","inline":true},{"name":"Commit","value":"`${{ github.sha }}`","inline":true},{"name":"Workflow","value":"[Voir](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})","inline":false}]}]}' \
+            "${{ secrets.DISCORD_WEBHOOK_URL }}"

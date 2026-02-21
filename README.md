@@ -23,7 +23,7 @@
 - [x] Build applicatif
 - [x] Build Docker multi-stage
 - [x] Scan sécurité des images (Trivy)
-- [ ] Notifications résultats
+- [x] Notifications résultats (Slack / Discord)
 
 ### PHASE 3 – Conteneurisation (Docker & Docker Compose)
 - [x] Dockerfile backend multi-stage optimisé
@@ -66,7 +66,7 @@
 ### PHASE 8 – Monitoring & logging (Prometheus, Grafana, ELK)
 - [x] Collecte des métriques via Prometheus (kube-prometheus-stack)
 - [x] Dashboards par service via Grafana
-- [ ] Alerting proactif (Alertmanager)
+- [x] Alerting proactif (Alertmanager + Slack)
 - [ ] Centralisation des logs avec ELK Stack
 - [ ] Analyse des performances et détection anomalies
 
@@ -124,6 +124,7 @@ npm run test:e2e       # Lancer les tests E2E
 - **Phase 4 :** Installer Harbor + configurer GitHub – [Guide DigitalOcean](docs/HARBOR-DIGITALOCEAN.md) | [HTTPS](docs/HARBOR-HTTPS.md) | [Référence](docs/HARBOR-SETUP.md)
 - **Phase 5 :** Créer un cluster DOKS + déployer – voir [docs/KUBERNETES-DIGITALOCEAN.md](docs/KUBERNETES-DIGITALOCEAN.md)
 - **Phase 8 :** Ajouter `grafana-repertoire` dans DuckDNS (même IP que repertoire-app) pour accéder à Grafana en HTTPS
+- **Phase 2 :** Configurer les notifications CI : ajouter le secret `SLACK_WEBHOOK_URL` ou `DISCORD_WEBHOOK_URL` dans GitHub (Settings → Secrets)
 - **Phase 10 :** Créer les Droplets DigitalOcean (8 vCores, 32 Go RAM, 1 To SSD)
 
 ---
@@ -151,5 +152,9 @@ git push origin develop
 | Service | URL | Identifiants |
 |---------|-----|--------------|
 | Grafana | https://grafana-repertoire.duckdns.org | admin / repertoire-monitoring |
+| Prometheus | port-forward `svc/kube-prometheus-stack-prometheus 9090:9090` | — |
+| Alertmanager | port-forward `svc/kube-prometheus-stack-alertmanager 9093:9093` | — |
 
 **Prérequis :** ajouter le sous-domaine `grafana-repertoire` dans DuckDNS (même IP que repertoire-app).
+
+**Alertes Slack :** ajouter le secret `ALERTMANAGER_SLACK_WEBHOOK` pour recevoir les alertes (Backend/Frontend/MongoDB down, mémoire élevée, crash loop).
