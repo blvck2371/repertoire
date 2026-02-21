@@ -20,6 +20,14 @@ describe('API Répertoire', () => {
     });
   });
 
+  describe('GET /api/metrics', () => {
+    it('retourne les métriques Prometheus', async () => {
+      const res = await request(app).get('/api/metrics');
+      expect(res.status).toBe(200);
+      expect(res.text).toMatch(/http_requests_total|process_cpu/);
+    });
+  });
+
   describe('GET /api/contacts', () => {
     it('retourne un tableau (liste des contacts)', async () => {
       const res = await request(app).get('/api/contacts');
@@ -41,6 +49,59 @@ describe('API Répertoire', () => {
       expect(res.body.nom).toBe('Test');
       expect(res.body.prenom).toBe('Jean');
       expect(res.body._id).toBeDefined();
+    });
+  });
+
+  describe('GET /api/contacts/:id', () => {
+    it('retourne un contact par ID', async () => {
+      const create = await request(app).post('/api/contacts').send({
+        nom: 'GetTest', prenom: 'Paul', telephone: '0698765432', email: 'paul@test.com'
+      });
+      const id = create.body._id;
+      const res = await request(app).get(`/api/contacts/${id}`);
+      expect(res.status).toBe(200);
+      expect(res.body.nom).toBe('GetTest');
+    });
+    it('retourne 404 si contact inexistant', async () => {
+      const res = await request(app).get('/api/contacts/000000000000000000000000');
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe('PUT /api/contacts/:id', () => {
+    it('met à jour un contact', async () => {
+      const create = await request(app).post('/api/contacts').send({
+        nom: 'PutTest', prenom: 'Marie', telephone: '0611111111', email: 'marie@test.com'
+      });
+      const id = create.body._id;
+      const res = await request(app).put(`/api/contacts/${id}`).send({
+        nom: 'PutUpdated', prenom: 'Marie', telephone: '0611111111', email: 'marie@test.com'
+      });
+      expect(res.status).toBe(200);
+      expect(res.body.nom).toBe('PutUpdated');
+    });
+    it('retourne 404 si contact inexistant', async () => {
+      const res = await request(app).put('/api/contacts/000000000000000000000000').send({
+        nom: 'X', prenom: 'Y', telephone: '06', email: 'x@y.com'
+      });
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe('DELETE /api/contacts/:id', () => {
+    it('supprime un contact', async () => {
+      const create = await request(app).post('/api/contacts').send({
+        nom: 'DelTest', prenom: 'Luc', telephone: '0622222222', email: 'luc@test.com'
+      });
+      const id = create.body._id;
+      const res = await request(app).delete(`/api/contacts/${id}`);
+      expect(res.status).toBe(200);
+      const get = await request(app).get(`/api/contacts/${id}`);
+      expect(get.status).toBe(404);
+    });
+    it('retourne 404 si contact inexistant', async () => {
+      const res = await request(app).delete('/api/contacts/000000000000000000000000');
+      expect(res.status).toBe(404);
     });
   });
 });

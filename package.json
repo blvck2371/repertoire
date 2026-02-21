@@ -1,0 +1,21 @@
+{
+  "name": "repertoire",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && npm run test",
+    "test:frontend": "cd frontend && npm run test",
+    "test:e2e": "playwright test",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm ci --omit=dev",
+    "build:frontend": "cd frontend && npm run build",
+    "docker:build": "docker compose build"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  }
+}
