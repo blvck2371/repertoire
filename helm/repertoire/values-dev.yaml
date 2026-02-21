@@ -1,6 +1,0 @@
-# Valeurs pour l'environnement dev
-imageTag: dev
-hpa:
-  enabled: true
-ingress:
-  enabled: false
