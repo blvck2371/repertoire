@@ -50,9 +50,9 @@
 - [x] Rolling Update + Rollback automatique (Helm)
 
 ### PHASE 6 – Reverse proxy & sécurité (Traefik + TLS)
-- [ ] Déploiement Traefik sur chaque environnement
-- [ ] Routage automatique des services
-- [ ] Certificats TLS via Let's Encrypt
+- [x] Déploiement Traefik (Ingress controller)
+- [x] Routage automatique via Ingress
+- [x] Certificats TLS via Let's Encrypt (cert-manager)
 - [ ] Middlewares de sécurité
 - [ ] Haute disponibilité en production
 

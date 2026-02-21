@@ -3,6 +3,20 @@
 
 environment: dev
 
+# Ingress (Traefik + TLS)
+ingress:
+  enabled: false
+  className: traefik
+  hosts:
+    - host: repertoire.example.com
+      paths: []
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    - secretName: repertoire-tls
+      hosts:
+        - repertoire.example.com
+
 # Image registry (Harbor ou Docker Hub)
 # Format: hostname/projet (ex: 46.101.199.158/dev)
 imageRegistry: ""
@@ -52,6 +66,7 @@ frontend:
     targetCPUUtilizationPercentage: 70
   service:
     port: 80
+    type: ClusterIP  # LoadBalancer pour exposition publique (IP externe)
 
 mongodb:
   image:

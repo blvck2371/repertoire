@@ -5,6 +5,18 @@ environment: dev
 imageRegistry: "repertoire-harbor.duckdns.org/dev"
 imagePullSecrets: [harbor-creds]
 
+# Ingress + TLS (Phase 6) - ajouter repertoire-app.duckdns.org dans DuckDNS
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: repertoire-app.duckdns.org
+  tls:
+    - secretName: repertoire-tls
+      hosts:
+        - repertoire-app.duckdns.org
+
 backend:
   replicaCount: 1
   autoscaling:
@@ -14,6 +26,8 @@ frontend:
   replicaCount: 1
   autoscaling:
     enabled: false
+  service:
+    type: ClusterIP  # Ingress (Traefik) expose l'app
 
 mongodb:
   persistence:

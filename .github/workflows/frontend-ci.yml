@@ -276,6 +276,48 @@ jobs:
             -n repertoire-dev \
             --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Install Traefik (Ingress controller)
+        run: |
+          helm repo add traefik https://traefik.github.io/charts --force-update
+          helm repo update
+          kubectl create namespace traefik --dry-run=client -o yaml | kubectl apply -f -
+          helm upgrade --install traefik traefik/traefik \
+            -n traefik \
+            --set deployment.replicas=1 \
+            --wait --timeout 2m || true
+
+      - name: Install cert-manager (Let's Encrypt)
+        run: |
+          helm repo add jetstack https://charts.jetstack.io --force-update
+          helm repo update
+          kubectl create namespace cert-manager --dry-run=client -o yaml | kubectl apply -f -
+          helm upgrade --install cert-manager jetstack/cert-manager \
+            -n cert-manager \
+            --set installCRDs=true \
+            --wait --timeout 2m || true
+
+      - name: Create Let's Encrypt ClusterIssuer
+        env:
+          LE_EMAIL: ${{ vars.LETSENCRYPT_EMAIL }}
+        run: |
+          EMAIL="${LE_EMAIL:-thetiptopprojectgroup@gmail.com}"
+          kubectl apply -f - <<EOF
+          apiVersion: cert-manager.io/v1
+          kind: ClusterIssuer
+          metadata:
+            name: letsencrypt-prod
+          spec:
+            acme:
+              server: https://acme-v02.api.letsencrypt.org/directory
+              email: ${EMAIL}
+              privateKeySecretRef:
+                name: letsencrypt-prod
+              solvers:
+                - http01:
+                    ingress:
+                      class: traefik
+          EOF
+
       - name: Deploy / Upgrade Helm
         run: |
           helm upgrade --install repertoire ./helm/repertoire \
