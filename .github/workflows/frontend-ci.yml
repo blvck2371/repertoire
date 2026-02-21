@@ -318,10 +318,24 @@ jobs:
                       class: traefik
           EOF
 
-      - name: Fix Certificate ownership (si conflit Helm)
+      - name: Create Certificate (cert-manager, hors Helm)
         run: |
-          kubectl delete certificate repertoire-tls -n repertoire-dev --ignore-not-found=true || true
-          sleep 2
+          kubectl delete certificate repertoire-tls -n repertoire-dev --ignore-not-found=true --wait=false 2>/dev/null || true
+          sleep 3
+          kubectl apply -f - <<EOF
+          apiVersion: cert-manager.io/v1
+          kind: Certificate
+          metadata:
+            name: repertoire-tls
+            namespace: repertoire-dev
+          spec:
+            secretName: repertoire-tls
+            issuerRef:
+              name: letsencrypt-prod
+              kind: ClusterIssuer
+            dnsNames:
+              - repertoire-app.duckdns.org
+          EOF
 
       - name: Deploy / Upgrade Helm
         run: |
