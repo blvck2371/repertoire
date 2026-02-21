@@ -122,10 +122,14 @@ npm run test:e2e       # Lancer les tests E2E
 
 ## Branches et push
 
-| Branche   | Quand pousser                    | Effet CI                          |
-|-----------|----------------------------------|-----------------------------------|
-| `develop` | Après chaque feature/fix         | Lint, tests, build, E2E, push Harbor (dev) |
-| `preprod` | Après validation develop         | Idem + push Harbor (preprod)      |
-| `prod`    | Après validation preprod         | Idem + push Harbor (prod)        |
+La CI s'exécute uniquement sur la branche **develop** :
 
-**Workflow :** `develop` → merge PR → `preprod` → merge PR → `prod`
+| Branche   | Effet CI                          |
+|-----------|-----------------------------------|
+| `develop` | Lint, tests, build, E2E, push Harbor (dev) |
+
+```bash
+git add .
+git commit -m "ton message"
+git push origin develop
+```
