@@ -13,9 +13,9 @@
 
 ## Accès MinIO (HTTPS)
 
-- **URL** : https://minio-repertoire.duckdns.org
-- **Identifiants** : minioadmin / minioadmin
-- **Prérequis** : ajouter `minio-repertoire` dans DuckDNS (même IP que repertoire-app)
+- **Console** : https://minio-repertoire.duckdns.org (minioadmin / minioadmin)
+- **API S3** : https://minio-api-repertoire.duckdns.org
+- **Prérequis** : ajouter `minio-repertoire` et `minio-api-repertoire` dans DuckDNS (même IP que repertoire-app)
 
 ## Déploiement
 
