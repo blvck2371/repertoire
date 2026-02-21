@@ -18,24 +18,18 @@ Voir [KUBERNETES-DIGITALOCEAN.md](KUBERNETES-DIGITALOCEAN.md) pour créer un clu
 
 Sur DigitalOcean : **Kubernetes** → ton cluster → **Download Config**
 
-### 3. Encoder en base64
-
-```bash
-# Sur Windows (PowerShell)
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("$HOME\Downloads\repertoire-kubeconfig.yaml"))
-
-# Sur Linux/Mac
-base64 -i ~/Downloads/repertoire-kubeconfig.yaml
-```
-
-Copie le résultat (longue chaîne de caractères).
-
-### 4. Ajouter le secret GitHub
+### 3. Ajouter le secret GitHub
 
 **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
 
 - **Name** : `KUBE_CONFIG`
-- **Value** : le kubeconfig encodé en base64 (coller le résultat)
+- **Value** : **Option A** – Copier-coller le contenu complet du fichier kubeconfig (recommandé)
+
+  Ou **Option B** – Encoder en base64 :
+  ```powershell
+  # Windows PowerShell
+  [Convert]::ToBase64String([IO.File]::ReadAllBytes("$env:USERPROFILE\Downloads\ton-cluster.yaml"))
+  ```
 
 ### 5. Activer la variable
 

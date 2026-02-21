@@ -250,9 +250,17 @@ jobs:
           version: 'v3.13.0'
 
       - name: Configure kubectl
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         run: |
           mkdir -p ~/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > ~/.kube/config
+          # Support base64 ou texte brut (copier-coller du kubeconfig)
+          if echo "$KUBE_CONFIG" | tr -d '\n\r ' | base64 -d > ~/.kube/config 2>/dev/null && [ -s ~/.kube/config ]; then
+            echo "Kubeconfig décodé (base64)"
+          else
+            printf '%s' "$KUBE_CONFIG" > ~/.kube/config
+            echo "Kubeconfig utilisé en texte brut"
+          fi
           chmod 600 ~/.kube/config
 
       - name: Create namespace if not exists
