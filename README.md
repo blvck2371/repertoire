@@ -53,7 +53,7 @@
 - [x] Déploiement Traefik (Ingress controller)
 - [x] Routage automatique via Ingress
 - [x] Certificats TLS via Let's Encrypt (cert-manager)
-- [ ] Middlewares de sécurité
+- [x] Middlewares de sécurité (headers, HSTS, redirect HTTPS)
 - [ ] Haute disponibilité en production
 
 ### PHASE 7 – Gestion des secrets (HashiCorp Vault)

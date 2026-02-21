@@ -13,6 +13,8 @@ spec:
     {{- range .Values.ingress.hosts }}
     - match: Host(`{{ .host }}`) && PathPrefix(`/`)
       kind: Rule
+      middlewares:
+        - name: {{ include "repertoire.fullname" $ }}-security-headers
       services:
         - name: {{ include "repertoire.fullname" $ }}-frontend
           port: {{ $.Values.frontend.service.port }}
