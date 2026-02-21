@@ -1,0 +1,38 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: repertoire-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: repertoire-backend:test
+    build: ./backend
+    container_name: repertoire-backend
+    ports:
+      - "3001:3001"
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017/repertoire
+      PORT: 3001
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  frontend:
+    image: repertoire-frontend:test
+    build: ./frontend
+    container_name: repertoire-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongodb_data:
