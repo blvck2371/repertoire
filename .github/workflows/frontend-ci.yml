@@ -440,6 +440,43 @@ jobs:
             --from-literal=restic-password=repertoire-backup-dev \
             --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Exposer MinIO en HTTPS (IngressRoute)
+        run: |
+          kubectl delete certificate minio-tls -n repertoire-dev --ignore-not-found=true --wait=false 2>/dev/null || true
+          sleep 2
+          kubectl apply -f - <<'MINIOEOF'
+          apiVersion: cert-manager.io/v1
+          kind: Certificate
+          metadata:
+            name: minio-tls
+            namespace: repertoire-dev
+          spec:
+            secretName: minio-tls
+            issuerRef:
+              name: letsencrypt-prod
+              kind: ClusterIssuer
+            dnsNames:
+              - minio-repertoire.duckdns.org
+          ---
+          apiVersion: traefik.io/v1alpha1
+          kind: IngressRoute
+          metadata:
+            name: minio
+            namespace: repertoire-dev
+          spec:
+            entryPoints:
+              - web
+              - websecure
+            routes:
+              - match: Host(`minio-repertoire.duckdns.org`) && PathPrefix(`/`)
+                kind: Rule
+                services:
+                  - name: repertoire-minio
+                    port: 9001
+            tls:
+              secretName: minio-tls
+          MINIOEOF
+
       - name: Deploy / Upgrade Helm
         run: |
           helm upgrade --install repertoire ./helm/repertoire \

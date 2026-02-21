@@ -18,7 +18,9 @@ spec:
           restartPolicy: OnFailure
           {{- with .Values.imagePullSecrets }}
           imagePullSecrets:
-            {{- toYaml . | nindent 12 }}
+            {{- range . }}
+            - name: {{ . }}
+            {{- end }}
           {{- end }}
           containers:
             - name: backup

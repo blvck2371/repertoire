@@ -11,6 +11,12 @@
 | dev | Dimanche 2h | 7 jours, 4 semaines |
 | prod | Quotidien 2h | 7 jours, 4 semaines |
 
+## Accès MinIO (HTTPS)
+
+- **URL** : https://minio-repertoire.duckdns.org
+- **Identifiants** : minioadmin / minioadmin
+- **Prérequis** : ajouter `minio-repertoire` dans DuckDNS (même IP que repertoire-app)
+
 ## Déploiement
 
 MinIO et le CronJob sont déployés automatiquement par le workflow (frontend-ci). Le secret `repertoire-backup-credentials` contient :

@@ -124,7 +124,7 @@ npm run test:e2e       # Lancer les tests E2E
 - **Phase 4 :** Installer Harbor + configurer GitHub – [Guide DigitalOcean](docs/HARBOR-DIGITALOCEAN.md) | [HTTPS](docs/HARBOR-HTTPS.md) | [Référence](docs/HARBOR-SETUP.md)
 - **Phase 5 :** Créer un cluster DOKS + déployer – voir [docs/KUBERNETES-DIGITALOCEAN.md](docs/KUBERNETES-DIGITALOCEAN.md)
 - **Phase 8 :** Ajouter `grafana-repertoire` dans DuckDNS (même IP que repertoire-app) pour accéder à Grafana en HTTPS
-- **Phase 9 :** Backups : MinIO + CronJob déployés automatiquement. Voir [docs/BACKUP-RESTORE.md](docs/BACKUP-RESTORE.md)
+- **Phase 9 :** Backups : MinIO + CronJob déployés automatiquement. Ajouter `minio-repertoire` dans DuckDNS pour accès HTTPS. Voir [docs/BACKUP-RESTORE.md](docs/BACKUP-RESTORE.md)
 - **Phase 2 :** Configurer les notifications CI : ajouter le secret `SLACK_WEBHOOK_URL` ou `DISCORD_WEBHOOK_URL` dans GitHub (Settings → Secrets)
 - **Phase 10 :** Créer les Droplets DigitalOcean (8 vCores, 32 Go RAM, 1 To SSD)
 
@@ -159,3 +159,11 @@ git push origin develop
 **Prérequis :** ajouter le sous-domaine `grafana-repertoire` dans DuckDNS (même IP que repertoire-app).
 
 **Alertes Slack :** ajouter le secret `ALERTMANAGER_SLACK_WEBHOOK` pour recevoir les alertes (Backend/Frontend/MongoDB down, mémoire élevée, crash loop).
+
+## Backups (Phase 9)
+
+| Service | URL | Identifiants |
+|---------|-----|--------------|
+| MinIO (console) | https://minio-repertoire.duckdns.org | minioadmin / minioadmin |
+
+**Prérequis :** ajouter le sous-domaine `minio-repertoire` dans DuckDNS (même IP que repertoire-app).
