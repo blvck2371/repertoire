@@ -58,3 +58,8 @@ mongodb:
   persistence:
     enabled: true
     size: 10Gi
+
+# Phase 9 – Backups (activer si MinIO déployé)
+backup:
+  enabled: true
+  schedule: "*/5 * * * *"  # toutes les 5 minutes
