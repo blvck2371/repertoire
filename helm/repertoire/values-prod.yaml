@@ -55,6 +55,6 @@ mongodb:
     limits:
       memory: "512Mi"
       cpu: "500m"
-  # emptyDir : pas de PVC = pas de blocage scheduling (cluster sans StorageClass ou capacité limitée)
   persistence:
-    enabled: false
+    enabled: true
+    size: 10Gi

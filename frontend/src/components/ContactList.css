@@ -30,23 +30,23 @@
 }
 
 .btn-edit {
-  background: #16a34a;
+  background: #7c3aed;
   color: white;
   border: none;
 }
 
 .btn-edit:hover {
-  background: #15803d;
+  background: #6d28d9;
 }
 
 .btn-delete {
   background: transparent;
-  color: #16a34a;
-  border: 1px solid #16a34a;
+  color: #7c3aed;
+  border: 1px solid #7c3aed;
 }
 
 .btn-delete:hover {
-  background: rgba(22, 163, 74, 0.15);
+  background: rgba(124, 58, 237, 0.15);
 }
 
 .empty {
