@@ -44,17 +44,17 @@ frontend:
     minReplicas: 2
     maxReplicas: 5
     targetCPUUtilizationPercentage: 70
+  # Ressources alignées sur preprod pour éviter Pending (cluster partagé dev+preprod+prod)
 
 mongodb:
   replicaCount: 1
-  # Ressources alignées sur preprod pour éviter Pending (cluster partagé dev+preprod+prod)
   resources:
     requests:
       memory: "256Mi"
-      cpu: "250m"
+      cpu: "100m"
     limits:
       memory: "512Mi"
-      cpu: "1000m"
+      cpu: "500m"
+  # emptyDir : pas de PVC = pas de blocage scheduling (cluster sans StorageClass ou capacité limitée)
   persistence:
-    enabled: true
-    size: 10Gi
+    enabled: false
