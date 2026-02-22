@@ -1,8 +1,14 @@
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const contactRoutes = require('./routes/contacts');
 const { metricsMiddleware, getMetrics, getContentType } = require('./metrics');
+
+// Phase 7 – Vault : charge MONGODB_URI depuis /vault/secrets si injecté par Vault Agent
+if (!process.env.MONGODB_URI && fs.existsSync('/vault/secrets/mongodb')) {
+  process.env.MONGODB_URI = fs.readFileSync('/vault/secrets/mongodb', 'utf8').trim();
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;

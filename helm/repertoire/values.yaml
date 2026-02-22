@@ -86,6 +86,11 @@ mongodb:
     size: 5Gi
   database: repertoire
 
+# Phase 7 – Vault (gestion des secrets)
+vault:
+  enabled: false
+  # Quand true : MONGODB_URI injecté par Vault Agent depuis secret/data/mongodb
+
 # Phase 9 – Backups (Restic + MinIO)
 backup:
   enabled: false  # activer dans values-dev.yaml si MinIO déployé

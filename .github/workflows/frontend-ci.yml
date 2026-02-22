@@ -424,6 +424,26 @@ jobs:
               secretName: grafana-tls
           GRAFANAEOF
 
+      - name: Install Vault (Phase 7, si VAULT_ENABLED)
+        if: vars.VAULT_ENABLED == 'true'
+        run: |
+          helm repo add hashicorp https://helm.releases.hashicorp.com --force-update
+          helm repo update
+          kubectl create namespace vault --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f helm/repertoire/vault/vault-rbac.yaml
+          helm upgrade --install vault hashicorp/vault \
+            -n vault \
+            -f helm/repertoire/vault/vault-values.yaml \
+            --wait --timeout 3m || true
+
+      - name: Init Vault (Phase 7 – KV, Kubernetes auth, secret MongoDB)
+        if: vars.VAULT_ENABLED == 'true'
+        run: |
+          kubectl delete job vault-init -n vault --ignore-not-found=true --wait=false 2>/dev/null || true
+          sleep 3
+          kubectl apply -f helm/repertoire/vault/vault-init-job.yaml
+          kubectl wait --for=condition=complete job/vault-init -n vault --timeout=120s || true
+
   # 8b. Deploy Backup – MinIO + Restic (Phase 9, develop uniquement)
   deploy-backup:
     name: Deploy Backup (MinIO + Restic)
@@ -617,10 +637,13 @@ jobs:
 
       - name: Deploy / Upgrade Helm
         run: |
+          VAULT_SET=""
+          [[ "${{ vars.VAULT_ENABLED }}" == "true" ]] && VAULT_SET="--set vault.enabled=true"
           helm upgrade --install repertoire ./helm/repertoire \
             -n ${{ steps.env.outputs.namespace }} \
             -f helm/repertoire/values.yaml \
             -f helm/repertoire/${{ steps.env.outputs.values }} \
+            $VAULT_SET \
             --timeout 3m
           echo "Helm deploy terminé, attente des pods..."
 

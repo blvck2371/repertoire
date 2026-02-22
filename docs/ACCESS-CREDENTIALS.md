@@ -69,6 +69,16 @@ Les push avec `GITHUB_TOKEN` ne déclenchent **pas** d'autres workflows. Le work
 
 ---
 
+## Vault (Phase 7)
+
+| Variable GitHub | Valeur | Description |
+|----------------|--------|-------------|
+| VAULT_ENABLED | true | Active le déploiement Vault et l'injection des secrets MongoDB |
+
+Quand activé : MONGODB_URI est stocké dans Vault et injecté dans le backend via l'Agent Injector.
+
+---
+
 ## Prometheus / Alertmanager
 
 | Service | Accès | Identifiants |

@@ -15,6 +15,13 @@ spec:
       labels:
         app.kubernetes.io/component: backend
         app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- if .Values.vault.enabled }}
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "repertoire"
+        vault.hashicorp.com/agent-inject-secret-mongodb: "secret/data/mongodb"
+        vault.hashicorp.com/agent-inject-template-mongodb: {{`{{- with secret "secret/data/mongodb" -}}{{ .Data.data.MONGODB_URI }}{{- end -}}`}}
+      {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -31,8 +38,10 @@ spec:
               containerPort: {{ .Values.backend.service.port }}
               protocol: TCP
           env:
+            {{- if not .Values.vault.enabled }}
             - name: MONGODB_URI
               value: mongodb://{{ include "repertoire.fullname" . }}-mongodb:27017/{{ .Values.mongodb.database }}
+            {{- end }}
             - name: PORT
               value: "{{ .Values.backend.service.port }}"
           livenessProbe:

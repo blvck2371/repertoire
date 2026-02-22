@@ -58,9 +58,9 @@
 - [ ] Haute disponibilité en production
 
 ### PHASE 7 – Gestion des secrets (HashiCorp Vault)
-- [ ] Déploiement cluster Vault haute disponibilité
-- [ ] Stockage sécurisé des credentials MongoDB
-- [ ] Injection dynamique des secrets dans les Pods
+- [x] Déploiement Vault (mode dev) + Agent Injector
+- [x] Stockage sécurisé des credentials MongoDB dans Vault
+- [x] Injection dynamique des secrets dans les Pods (backend)
 - [ ] Rotation automatique des secrets
 - [ ] Audit trail des accès
 

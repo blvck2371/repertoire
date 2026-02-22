@@ -1,0 +1,56 @@
+# Job d'initialisation Vault - exécuté après le déploiement Vault
+# Configure KV, Kubernetes auth, policy, role et écrit le secret MongoDB
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-init
+  namespace: vault
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 5
+  template:
+    spec:
+      serviceAccountName: default
+      restartPolicy: OnFailure
+      containers:
+        - name: vault-init
+          image: hashicorp/vault:1.15
+          env:
+            - name: VAULT_ADDR
+              value: "http://vault.vault:8200"
+            - name: VAULT_TOKEN
+              value: "root"
+            - name: MONGODB_URI
+              value: "mongodb://repertoire-mongodb:27017/repertoire"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              echo "Attente de Vault..."
+              for i in $(seq 1 60); do
+                if wget -q -O- http://vault.vault:8200/v1/sys/health 2>/dev/null | grep -q '"initialized"'; then
+                  break
+                fi
+                sleep 2
+              done
+              echo "Vault prêt, configuration..."
+              vault status || true
+              vault secrets enable -path=secret kv-v2 2>/dev/null || vault secrets enable -path=secret kv 2>/dev/null || true
+              vault auth enable kubernetes 2>/dev/null || true
+              vault write auth/kubernetes/config \
+                kubernetes_host="https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}" \
+                token_reviewer_jwt="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+                kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt 2>/dev/null || true
+              vault policy write repertoire - <<'POLICY'
+              path "secret/data/mongodb" {
+                capabilities = ["read"]
+              }
+              POLICY
+              vault write auth/kubernetes/role/repertoire \
+                bound_service_account_names=default \
+                bound_service_account_namespaces=repertoire-dev,repertoire-preprod,repertoire-prod \
+                policies=repertoire \
+                ttl=1h 2>/dev/null || true
+              vault kv put secret/mongodb MONGODB_URI="${MONGODB_URI}"
+              echo "Vault init terminé"
