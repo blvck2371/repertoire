@@ -652,37 +652,37 @@ jobs:
           kubectl rollout restart deployment -n ${{ steps.env.outputs.namespace }} -l app.kubernetes.io/instance=repertoire
           kubectl rollout status deployment -n ${{ steps.env.outputs.namespace }} -l app.kubernetes.io/instance=repertoire --timeout=5m
 
-  # 8d. Auto-merge : develop → preprod → prod (si deploy OK)
+  # 8d. Auto-merge : develop → preprod → prod (si pipeline OK)
+  # S'exécute après deploy (si deploy a tourné) OU après les jobs build si deploy est ignoré (vars non définies)
   auto-merge:
     name: Auto-merge develop→preprod→prod
     runs-on: ubuntu-latest
-    needs: deploy
-    if: github.event_name == 'push' && github.ref_name != 'prod'
+    needs: [deploy, frontend-build]
+    if: |
+      github.event_name == 'push' &&
+      github.ref_name != 'prod' &&
+      (needs.deploy.result == 'success' || needs.deploy.result == 'skipped')
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Merge develop → preprod
+      - name: Push develop → preprod
         if: github.ref_name == 'develop'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin preprod
-          git checkout preprod
-          git merge origin/develop -m "chore: auto-merge develop → preprod"
-          git push origin preprod
+          # Push direct : crée preprod si inexistante, sinon la met à jour
+          git push origin HEAD:preprod
 
-      - name: Merge preprod → prod
+      - name: Push preprod → prod
         if: github.ref_name == 'preprod'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin prod
-          git checkout prod
-          git merge origin/preprod -m "chore: auto-merge preprod → prod"
-          git push origin prod
+          # Push direct : crée prod si inexistante, sinon la met à jour
+          git push origin HEAD:prod
 
   # 9. Notifications (Phase 2) – Slack ou Discord
   notify:
