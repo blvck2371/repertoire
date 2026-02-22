@@ -29,7 +29,7 @@ backend:
   image:
     repository: repertoire-backend
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   replicaCount: 1
   resources:
     requests:
@@ -50,7 +50,7 @@ frontend:
   image:
     repository: repertoire-frontend
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   replicaCount: 1
   resources:
     requests:
