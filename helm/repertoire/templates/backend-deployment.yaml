@@ -20,7 +20,8 @@ spec:
         vault.hashicorp.com/agent-inject: "true"
         vault.hashicorp.com/role: "repertoire"
         vault.hashicorp.com/agent-inject-secret-mongodb: "secret/data/mongodb"
-        vault.hashicorp.com/agent-inject-template-mongodb: {{`{{- with secret "secret/data/mongodb" -}}{{ .Data.data.MONGODB_URI }}{{- end -}}`}}
+        vault.hashicorp.com/agent-inject-template-mongodb: |
+{{ .Files.Get "vault-mongodb-template.txt" | nindent 10 }}
       {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
