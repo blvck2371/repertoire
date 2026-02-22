@@ -7,9 +7,10 @@
 ## Plan de travail
 
 ### PHASE 1 – Gestion du code source (GitHub)
-- [ ] Branches principales : `develop`, `preprod`, `prod` *(à créer sur GitHub si absentes)*
-- [x] Workflow : develop → preprod → prod
+- [x] Branches principales : `develop`, `preprod`, `prod`
+- [x] Workflow CI/CD sur develop
 - [x] Versioning sémantique (v1.0.0, v1.1.0…)
+- [ ] Workflow sur preprod/prod *(déploiement multi-env)*
 - [ ] Pull Requests et revues de code via GitHub
 
 ### PHASE 2 – Intégration continue (GitHub Actions)
@@ -33,19 +34,19 @@
 - [ ] Versionnement des images selon branche *(Phase 4 – CD)*
 
 ### PHASE 4 – Registry privé (Harbor)
-- [ ] Installation serveur Harbor → **[Checklist complète](docs/PHASE4-HARBOR.md)** | [Setup](docs/HARBOR-SETUP.md) | [DigitalOcean](docs/HARBOR-DIGITALOCEAN.md) | [HTTPS](docs/HARBOR-HTTPS.md)
+- [x] Installation serveur Harbor (HTTPS + domaine)
 - [x] Projets distincts (dev, preprod, prod) – mapping branche → projet
-- [x] Push automatique des images vers Harbor (si secrets configurés)
-- [ ] Scan vulnérabilités (Trivy) – voir [PHASE4-HARBOR.md](docs/PHASE4-HARBOR.md) §6
-- [ ] Gestion des accès – voir [PHASE4-HARBOR.md](docs/PHASE4-HARBOR.md) §7
-- [x] Stockage sécurisé des images *(Harbor + secrets GitHub)*
+- [x] Push automatique des images vers Harbor
+- [ ] Scan vulnérabilités (Trivy) – optionnel
+- [x] Gestion des accès (utilisateur github-actions)
+- [x] Stockage sécurisé des images
 
 ### PHASE 5 – Orchestration (Kubernetes + Helm)
-- [ ] Cluster Kubernetes (3 nœuds minimum) – [Guide DigitalOcean](docs/KUBERNETES-DIGITALOCEAN.md)
-- [ ] Namespaces : dev / preprod / prod
+- [x] Cluster Kubernetes (déploiement auto sur develop)
+- [x] Namespace repertoire-dev (preprod/prod : à activer)
 - [x] Backend et Frontend en Deployment
 - [x] Base MongoDB en StatefulSet
-- [x] Helm Charts pour packaging et déploiement – voir [docs/KUBERNETES.md](docs/KUBERNETES.md)
+- [x] Helm Charts – voir [docs/KUBERNETES.md](docs/KUBERNETES.md)
 - [x] Autoscaling HPA
 - [x] Rolling Update + Rollback automatique (Helm)
 
@@ -118,13 +119,12 @@ npm run test:e2e       # Lancer les tests E2E
 | `docker/backend/` | MongoDB + API (docker-compose.yml) |
 | `docker/frontend/` | Frontend (à combiner avec backend) |
 
-## À faire manuellement (Digital Ocean, GitHub, VPS)
+## À faire (optionnel)
 
 - **Phase 1 :** Créer les branches `preprod` et `prod` sur GitHub si elles n’existent pas
-- **Phase 4 :** Installer Harbor – [Checklist Phase 4](docs/PHASE4-HARBOR.md) | [DigitalOcean](docs/HARBOR-DIGITALOCEAN.md) | [HTTPS](docs/HARBOR-HTTPS.md)
-- **Phase 5 :** Créer un cluster DOKS + déployer – voir [docs/KUBERNETES-DIGITALOCEAN.md](docs/KUBERNETES-DIGITALOCEAN.md)
-- **Phase 8 :** Ajouter `grafana-repertoire` dans DuckDNS (même IP que repertoire-app) pour accéder à Grafana en HTTPS
-- **Phase 9 :** Backups : MinIO (Bitnami) + CronJob déployés automatiquement. Ajouter `minio-repertoire` et `minio-api-repertoire` dans DuckDNS pour accès HTTPS. Voir [docs/BACKUP-RESTORE.md](docs/BACKUP-RESTORE.md)
+- **Phase 4 :** *(fait)* Harbor HTTPS + domaine configuré
+- **Phase 5 :** *(fait)* Cluster + deploy auto. Optionnel : preprod/prod
+- **Phase 7 :** Vault (secrets MongoDB). **Phase 8 :** ELK (logs). **Phase 9 :** Tests restauration
 - **Phase 2 :** Configurer les notifications CI : ajouter le secret `SLACK_WEBHOOK_URL` ou `DISCORD_WEBHOOK_URL` dans GitHub (Settings → Secrets)
 - **Phase 10 :** Créer les Droplets DigitalOcean (8 vCores, 32 Go RAM, 1 To SSD)
 
@@ -132,13 +132,19 @@ npm run test:e2e       # Lancer les tests E2E
 
 ## Branches et push
 
-Sur **develop**, tout est automatisé à chaque push :
+Sur **develop**, **preprod** ou **prod**, tout est automatisé à chaque push :
 
 | Étape | Action |
 |-------|--------|
 | CI | Lint, tests, build, scan, E2E |
-| CD | Push des images vers Harbor |
-| Deploy | Mise à jour Kubernetes (si activé) |
+| CD | Push des images vers Harbor (dev / preprod / prod) |
+| Deploy | Mise à jour Kubernetes (namespace selon branche) |
+
+| Branche | Namespace | URL |
+|---------|-----------|-----|
+| develop | repertoire-dev | https://repertoire-app.duckdns.org |
+| preprod | repertoire-preprod | https://repertoire-preprod.duckdns.org |
+| prod | repertoire-prod | https://repertoire-prod.duckdns.org |
 
 ```bash
 git add .

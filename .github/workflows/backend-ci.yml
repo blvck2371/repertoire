@@ -2,9 +2,9 @@ name: Backend CI
 
 on:
   push:
-    branches: [develop]
+    branches: [develop, preprod, prod]
   pull_request:
-    branches: [develop]
+    branches: [develop, preprod, prod]
 
 jobs:
   # 1. Lint

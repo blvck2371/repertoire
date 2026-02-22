@@ -1,7 +1,19 @@
 # Valeurs pour l'environnement production
 environment: prod
 
-imageRegistry: ""  # ou harbor.example.com/prod
+imageRegistry: "repertoire-harbor.duckdns.org/prod"
+imagePullSecrets: [harbor-creds]
+
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: repertoire-prod.duckdns.org
+  tls:
+    - secretName: repertoire-tls
+      hosts:
+        - repertoire-prod.duckdns.org
 
 backend:
   replicaCount: 2

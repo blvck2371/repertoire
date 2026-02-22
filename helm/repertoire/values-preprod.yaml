@@ -1,7 +1,19 @@
 # Valeurs pour l'environnement preprod
 environment: preprod
 
-imageRegistry: ""  # ou harbor.example.com/preprod
+imageRegistry: "repertoire-harbor.duckdns.org/preprod"
+imagePullSecrets: [harbor-creds]
+
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: repertoire-preprod.duckdns.org
+  tls:
+    - secretName: repertoire-tls
+      hosts:
+        - repertoire-preprod.duckdns.org
 
 backend:
   replicaCount: 2

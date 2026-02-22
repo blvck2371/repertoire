@@ -6,9 +6,11 @@ Document de référence pour tous les accès et identifiants du projet.
 
 ## Application principale
 
-| URL | Identifiant | Mot de passe |
-|-----|-------------|--------------|
-| https://repertoire-app.duckdns.org | — | — |
+| Environnement | URL | Identifiant | Mot de passe |
+|---------------|-----|-------------|--------------|
+| dev | https://repertoire-app.duckdns.org | — | — |
+| preprod | https://repertoire-preprod.duckdns.org | — | — |
+| prod | https://repertoire-prod.duckdns.org | — | — |
 
 *Application CRUD publique, pas d'authentification.*
 
@@ -70,8 +72,10 @@ Document de référence pour tous les accès et identifiants du projet.
 
 Ajouter ces sous-domaines (même IP que le cluster) :
 
-- `repertoire-app`
+- `repertoire-app` (dev)
+- `repertoire-preprod`
+- `repertoire-prod`
 - `grafana-repertoire`
 - `minio-repertoire`
 - `minio-api-repertoire`
-- `repertoire-harbor` *(si Harbor déployé)*
+- `repertoire-harbor` *(Harbor)*

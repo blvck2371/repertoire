@@ -2,9 +2,9 @@ name: Frontend CI
 
 on:
   push:
-    branches: [develop]
+    branches: [develop, preprod, prod]
   pull_request:
-    branches: [develop]
+    branches: [develop, preprod, prod]
 
 jobs:
   # 1. Lint
@@ -264,8 +264,22 @@ jobs:
           fi
           chmod 600 ~/.kube/config
 
+      - name: Set env from branch
+        id: env
+        run: |
+          case "${{ github.ref_name }}" in
+            develop) NS=repertoire-dev; HOST=repertoire-app.duckdns.org; VALS=values-dev.yaml ;;
+            preprod) NS=repertoire-preprod; HOST=repertoire-preprod.duckdns.org; VALS=values-preprod.yaml ;;
+            prod)    NS=repertoire-prod; HOST=repertoire-prod.duckdns.org; VALS=values-prod.yaml ;;
+            *)      NS=repertoire-dev; HOST=repertoire-app.duckdns.org; VALS=values-dev.yaml ;;
+          esac
+          echo "namespace=$NS" >> $GITHUB_OUTPUT
+          echo "host=$HOST" >> $GITHUB_OUTPUT
+          echo "values=$VALS" >> $GITHUB_OUTPUT
+
       - name: Create namespace if not exists
         run: |
+          kubectl create namespace ${{ steps.env.outputs.namespace }} --dry-run=client -o yaml | kubectl apply -f -
           kubectl create namespace repertoire-dev --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Create Harbor secret if not exists
@@ -274,7 +288,7 @@ jobs:
             --docker-server=${{ secrets.HARBOR_URL }} \
             --docker-username=${{ secrets.HARBOR_USERNAME }} \
             --docker-password=${{ secrets.HARBOR_PASSWORD }} \
-            -n repertoire-dev \
+            -n ${{ steps.env.outputs.namespace }} \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Install Traefik (Ingress controller)
@@ -321,21 +335,21 @@ jobs:
 
       - name: Create Certificate (cert-manager, hors Helm)
         run: |
-          kubectl delete certificate repertoire-tls -n repertoire-dev --ignore-not-found=true --wait=false 2>/dev/null || true
+          kubectl delete certificate repertoire-tls -n ${{ steps.env.outputs.namespace }} --ignore-not-found=true --wait=false 2>/dev/null || true
           sleep 3
           kubectl apply -f - <<EOF
           apiVersion: cert-manager.io/v1
           kind: Certificate
           metadata:
             name: repertoire-tls
-            namespace: repertoire-dev
+            namespace: ${{ steps.env.outputs.namespace }}
           spec:
             secretName: repertoire-tls
             issuerRef:
               name: letsencrypt-prod
               kind: ClusterIssuer
             dnsNames:
-              - repertoire-app.duckdns.org
+              - ${{ steps.env.outputs.host }}
           EOF
 
       - name: Install Prometheus + Grafana (Phase 8)
@@ -408,7 +422,7 @@ jobs:
               secretName: grafana-tls
           GRAFANAEOF
 
-  # 8b. Deploy Backup – MinIO + Restic (Phase 9)
+  # 8b. Deploy Backup – MinIO + Restic (Phase 9, develop uniquement)
   deploy-backup:
     name: Deploy Backup (MinIO + Restic)
     runs-on: ubuntu-latest
@@ -565,7 +579,7 @@ jobs:
   deploy:
     name: Deploy K8s
     runs-on: ubuntu-latest
-    needs: deploy-backup
+    needs: [deploy-infra, deploy-backup]
     if: github.event_name == 'push' && vars.HARBOR_ENABLED == 'true' && vars.KUBERNETES_DEPLOY_ENABLED == 'true'
     steps:
       - uses: actions/checkout@v4
@@ -587,41 +601,53 @@ jobs:
           fi
           chmod 600 ~/.kube/config
 
+      - name: Set env from branch
+        id: env
+        run: |
+          case "${{ github.ref_name }}" in
+            develop) NS=repertoire-dev; VALS=values-dev.yaml ;;
+            preprod) NS=repertoire-preprod; VALS=values-preprod.yaml ;;
+            prod)    NS=repertoire-prod; VALS=values-prod.yaml ;;
+            *)      NS=repertoire-dev; VALS=values-dev.yaml ;;
+          esac
+          echo "namespace=$NS" >> $GITHUB_OUTPUT
+          echo "values=$VALS" >> $GITHUB_OUTPUT
+
       - name: Deploy / Upgrade Helm
         run: |
           helm upgrade --install repertoire ./helm/repertoire \
-            -n repertoire-dev \
+            -n ${{ steps.env.outputs.namespace }} \
             -f helm/repertoire/values.yaml \
-            -f helm/repertoire/values-dev.yaml \
+            -f helm/repertoire/${{ steps.env.outputs.values }} \
             --timeout 3m
           echo "Helm deploy terminé, attente des pods..."
 
       - name: Force MongoDB pod refresh (si bloqué)
         run: |
-          kubectl delete pod -l app.kubernetes.io/component=mongodb -n repertoire-dev --ignore-not-found=true || true
+          kubectl delete pod -l app.kubernetes.io/component=mongodb -n ${{ steps.env.outputs.namespace }} --ignore-not-found=true || true
           sleep 10
 
       - name: Wait for MongoDB
         run: |
-          kubectl rollout status statefulset/repertoire-mongodb -n repertoire-dev --timeout=5m
+          kubectl rollout status statefulset/repertoire-mongodb -n ${{ steps.env.outputs.namespace }} --timeout=5m
 
       - name: Wait for Backend and Frontend
         run: |
-          kubectl rollout status deployment/repertoire-backend -n repertoire-dev --timeout=5m
-          kubectl rollout status deployment/repertoire-frontend -n repertoire-dev --timeout=5m
+          kubectl rollout status deployment/repertoire-backend -n ${{ steps.env.outputs.namespace }} --timeout=5m
+          kubectl rollout status deployment/repertoire-frontend -n ${{ steps.env.outputs.namespace }} --timeout=5m
 
       - name: Debug pods (si échec)
         if: failure()
         run: |
           echo "=== Pods ==="
-          kubectl get pods -n repertoire-dev -o wide
+          kubectl get pods -n ${{ steps.env.outputs.namespace }} -o wide
           echo "=== Events ==="
-          kubectl get events -n repertoire-dev --sort-by='.lastTimestamp' | tail -30
+          kubectl get events -n ${{ steps.env.outputs.namespace }} --sort-by='.lastTimestamp' | tail -30
 
       - name: Restart deployments (pull latest images)
         run: |
-          kubectl rollout restart deployment -n repertoire-dev -l app.kubernetes.io/instance=repertoire
-          kubectl rollout status deployment -n repertoire-dev -l app.kubernetes.io/instance=repertoire --timeout=5m
+          kubectl rollout restart deployment -n ${{ steps.env.outputs.namespace }} -l app.kubernetes.io/instance=repertoire
+          kubectl rollout status deployment -n ${{ steps.env.outputs.namespace }} -l app.kubernetes.io/instance=repertoire --timeout=5m
 
   # 9. Notifications (Phase 2) – Slack ou Discord
   notify:
