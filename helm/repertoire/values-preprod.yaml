@@ -1,0 +1,35 @@
+# Valeurs pour l'environnement preprod
+environment: preprod
+
+imageRegistry: "repertoire-harbor.duckdns.org/preprod"
+imagePullSecrets: [harbor-creds]
+
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: repertoire-preprod.duckdns.org
+  tls:
+    - secretName: repertoire-tls
+      hosts:
+        - repertoire-preprod.duckdns.org
+
+backend:
+  replicaCount: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+
+frontend:
+  replicaCount: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+
+mongodb:
+  persistence:
+    enabled: true
+    size: 10Gi

@@ -1,0 +1,100 @@
+# Default values for repertoire
+# Override per environment: values-dev.yaml, values-preprod.yaml, values-prod.yaml
+
+environment: dev
+
+# Ingress (Traefik + TLS)
+ingress:
+  enabled: false
+  className: traefik
+  hosts:
+    - host: repertoire.example.com
+      paths: []
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    - secretName: repertoire-tls
+      hosts:
+        - repertoire.example.com
+
+# Image registry (Harbor ou Docker Hub)
+# Format: hostname/projet (ex: 46.101.199.158/dev)
+imageRegistry: ""
+
+# Secret pour pull depuis registry privé (Harbor)
+imagePullSecrets: []
+# imagePullSecrets: [harbor-creds]
+
+backend:
+  image:
+    repository: repertoire-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+  service:
+    port: 3001
+
+frontend:
+  image:
+    repository: repertoire-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "200m"
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+  service:
+    port: 80
+    type: ClusterIP  # LoadBalancer pour exposition publique (IP externe)
+
+mongodb:
+  image:
+    repository: mongo
+    tag: "7"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "500m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+  persistence:
+    enabled: true
+    size: 5Gi
+  database: repertoire
+
+# Phase 9 – Backups (Restic + MinIO)
+backup:
+  enabled: false  # activer dans values-dev.yaml si MinIO déployé
+  schedule: "0 2 * * *"  # 2h du matin quotidien
+  retention:
+    keepDaily: 7
+    keepWeekly: 4
+  minioHost: repertoire-minio  # service MinIO dans le namespace
+  image:
+    repository: repertoire-backup
+    tag: latest
+    pullPolicy: IfNotPresent

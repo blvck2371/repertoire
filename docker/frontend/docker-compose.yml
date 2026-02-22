@@ -1,0 +1,14 @@
+# À utiliser avec docker/backend/docker-compose.yml pour la stack complète
+# docker compose -f docker/backend/docker-compose.yml -f docker/frontend/docker-compose.yml up -d
+
+services:
+  frontend:
+    image: repertoire-frontend:test
+    build:
+      context: ../../frontend
+      dockerfile: ../../frontend/Dockerfile
+    container_name: repertoire-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend

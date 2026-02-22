@@ -1,0 +1,59 @@
+# Règles d'alerte Prometheus (Phase 8) – Répertoire
+# Utilise kube-state-metrics (déjà scrapé par kube-prometheus-stack)
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: repertoire-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+  groups:
+    - name: repertoire
+      rules:
+        - alert: RepertoireBackendDown
+          expr: kube_deployment_status_replicas_available{namespace="repertoire-dev",deployment="repertoire-backend"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: Backend Répertoire indisponible
+            description: "Aucun replica backend disponible dans repertoire-dev."
+
+        - alert: RepertoireFrontendDown
+          expr: kube_deployment_status_replicas_available{namespace="repertoire-dev",deployment="repertoire-frontend"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: Frontend Répertoire indisponible
+            description: "Aucun replica frontend disponible dans repertoire-dev."
+
+        - alert: MongoDBDown
+          expr: kube_statefulset_status_replicas_ready{namespace="repertoire-dev",statefulset="repertoire-mongodb"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: MongoDB indisponible
+            description: "MongoDB n'a aucun replica prêt dans repertoire-dev."
+
+        - alert: HighMemoryUsage
+          expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.9
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: Utilisation mémoire élevée
+            description: "La mémoire du nœud dépasse 90%."
+
+        - alert: PodCrashLooping
+          expr: rate(kube_pod_container_status_restarts_total{namespace="repertoire-dev"}[15m]) > 0.1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: Pod en crash loop
+            description: "Un ou plusieurs pods redémarrent en boucle dans repertoire-dev."

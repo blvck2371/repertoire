@@ -7,9 +7,10 @@
 ## Plan de travail
 
 ### PHASE 1 – Gestion du code source (GitHub)
-- [ ] Branches principales : `develop`, `preprod`, `prod` *(à créer sur GitHub si absentes)*
-- [x] Workflow : develop → preprod → prod
+- [x] Branches principales : `develop`, `preprod`, `prod`
+- [x] Workflow CI/CD sur develop
 - [x] Versioning sémantique (v1.0.0, v1.1.0…)
+- [ ] Workflow sur preprod/prod *(déploiement multi-env)*
 - [ ] Pull Requests et revues de code via GitHub
 
 ### PHASE 2 – Intégration continue (GitHub Actions)
@@ -23,7 +24,7 @@
 - [x] Build applicatif
 - [x] Build Docker multi-stage
 - [x] Scan sécurité des images (Trivy)
-- [ ] Notifications résultats
+- [x] Notifications résultats (Slack / Discord)
 
 ### PHASE 3 – Conteneurisation (Docker & Docker Compose)
 - [x] Dockerfile backend multi-stage optimisé
@@ -33,27 +34,27 @@
 - [ ] Versionnement des images selon branche *(Phase 4 – CD)*
 
 ### PHASE 4 – Registry privé (Harbor)
-- [ ] Installation serveur Harbor *(manuel sur VPS – voir [docs/HARBOR-SETUP.md](docs/HARBOR-SETUP.md))*
+- [x] Installation serveur Harbor (HTTPS + domaine)
 - [x] Projets distincts (dev, preprod, prod) – mapping branche → projet
-- [x] Push automatique des images vers Harbor (si secrets configurés)
-- [ ] Scan automatique des vulnérabilités *(configurer dans Harbor)*
-- [ ] Gestion des accès par projet *(configurer dans Harbor)*
-- [x] Stockage sécurisé des images *(Harbor + secrets GitHub)*
+- [x] Push automatique des images vers Harbor
+- [ ] Scan vulnérabilités (Trivy) – optionnel
+- [x] Gestion des accès (utilisateur github-actions)
+- [x] Stockage sécurisé des images
 
 ### PHASE 5 – Orchestration (Kubernetes + Helm)
-- [ ] Cluster Kubernetes (3 nœuds minimum)
-- [ ] Namespaces : dev / preprod / prod
-- [ ] Backend et Frontend en Deployment
-- [ ] Base MongoDB en StatefulSet
-- [ ] Helm Charts pour packaging et déploiement
-- [ ] Autoscaling HPA
-- [ ] Rolling Update + Rollback automatique
+- [x] Cluster Kubernetes (déploiement auto sur develop)
+- [x] Namespace repertoire-dev (preprod/prod : à activer)
+- [x] Backend et Frontend en Deployment
+- [x] Base MongoDB en StatefulSet
+- [x] Helm Charts – voir [docs/KUBERNETES.md](docs/KUBERNETES.md)
+- [x] Autoscaling HPA
+- [x] Rolling Update + Rollback automatique (Helm)
 
 ### PHASE 6 – Reverse proxy & sécurité (Traefik + TLS)
-- [ ] Déploiement Traefik sur chaque environnement
-- [ ] Routage automatique des services
-- [ ] Certificats TLS via Let's Encrypt
-- [ ] Middlewares de sécurité
+- [x] Déploiement Traefik (Ingress controller)
+- [x] Routage automatique via Ingress
+- [x] Certificats TLS via Let's Encrypt (cert-manager)
+- [x] Middlewares de sécurité (headers, HSTS, redirect HTTPS)
 - [ ] Haute disponibilité en production
 
 ### PHASE 7 – Gestion des secrets (HashiCorp Vault)
@@ -64,19 +65,19 @@
 - [ ] Audit trail des accès
 
 ### PHASE 8 – Monitoring & logging (Prometheus, Grafana, ELK)
-- [ ] Collecte des métriques via Prometheus
-- [ ] Dashboards par service via Grafana
-- [ ] Alerting proactif (Alertmanager)
+- [x] Collecte des métriques via Prometheus (kube-prometheus-stack)
+- [x] Dashboards par service via Grafana
+- [x] Alerting proactif (Alertmanager + Slack)
 - [ ] Centralisation des logs avec ELK Stack
 - [ ] Analyse des performances et détection anomalies
 
 ### PHASE 9 – Backups & restauration (Restic + MinIO)
-- [ ] Backups quotidiens des données production
-- [ ] Backups hebdomadaires dev/preprod
-- [ ] Stockage chiffré via MinIO (compatible S3)
-- [ ] Sauvegardes incrémentales versionnées
+- [x] Backups quotidiens des données production
+- [x] Backups hebdomadaires dev/preprod
+- [x] Stockage chiffré via MinIO (compatible S3)
+- [x] Sauvegardes incrémentales versionnées (Restic)
 - [ ] Tests de restauration mensuels en sandbox
-- [ ] Automatisation via conteneurs planifiés (cron + Docker)
+- [x] Automatisation via CronJob Kubernetes
 
 ### PHASE 10 – Infrastructure & hébergement (DigitalOcean)
 - [ ] Infrastructure Cloud (DigitalOcean Optimized Droplets)
@@ -107,25 +108,71 @@ docker compose up -d
 ## Tests E2E (Playwright)
 
 ```bash
-docker compose up -d   # Démarrer la stack
+docker compose up -d   # Démarrer la stack (ou docker compose -f docker/backend/docker-compose.yml -f docker/frontend/docker-compose.yml up -d)
 npm run test:e2e       # Lancer les tests E2E
 ```
 
-## À faire manuellement (Digital Ocean, GitHub, VPS)
+## Structure Docker
+
+| Dossier | Contenu |
+|--------|---------|
+| `docker/backend/` | MongoDB + API (docker-compose.yml) |
+| `docker/frontend/` | Frontend (à combiner avec backend) |
+
+## À faire (optionnel)
 
 - **Phase 1 :** Créer les branches `preprod` et `prod` sur GitHub si elles n’existent pas
-- **Phase 4 :** Installer Harbor sur le VPS + configurer les secrets GitHub (`HARBOR_URL`, `HARBOR_USERNAME`, `HARBOR_PASSWORD`) – voir [docs/HARBOR-SETUP.md](docs/HARBOR-SETUP.md)
-- **Phase 5 :** Provisionner le cluster Kubernetes (3 nœuds min.)
+- **Phase 4 :** *(fait)* Harbor HTTPS + domaine configuré
+- **Phase 5 :** *(fait)* Cluster + deploy auto. Optionnel : preprod/prod
+- **Phase 7 :** Vault (secrets MongoDB). **Phase 8 :** ELK (logs). **Phase 9 :** Tests restauration
+- **Phase 2 :** Configurer les notifications CI : ajouter le secret `SLACK_WEBHOOK_URL` ou `DISCORD_WEBHOOK_URL` dans GitHub (Settings → Secrets)
 - **Phase 10 :** Créer les Droplets DigitalOcean (8 vCores, 32 Go RAM, 1 To SSD)
 
 ---
 
 ## Branches et push
 
-| Branche   | Quand pousser                    | Effet CI                          |
-|-----------|----------------------------------|-----------------------------------|
-| `develop` | Après chaque feature/fix         | Lint, tests, build, E2E, push Harbor (dev) |
-| `preprod` | Après validation develop         | Idem + push Harbor (preprod)      |
-| `prod`    | Après validation preprod         | Idem + push Harbor (prod)        |
+Sur **develop**, **preprod** ou **prod**, tout est automatisé à chaque push :
 
-**Workflow :** `develop` → merge PR → `preprod` → merge PR → `prod`
+| Étape | Action |
+|-------|--------|
+| CI | Lint, tests, build, scan, E2E |
+| CD | Push des images vers Harbor (dev / preprod / prod) |
+| Deploy | Mise à jour Kubernetes (namespace selon branche) |
+
+| Branche | Namespace | URL |
+|---------|-----------|-----|
+| develop | repertoire-dev | https://repertoire-app.duckdns.org |
+| preprod | repertoire-preprod | https://repertoire-preprod.duckdns.org |
+| prod | repertoire-prod | https://repertoire-prod.duckdns.org |
+
+```bash
+git add .
+git commit -m "ton message"
+git push origin develop
+```
+
+**Activer le déploiement auto sur K8s :** voir [docs/DEPLOY-AUTO.md](docs/DEPLOY-AUTO.md)
+
+**Identifiants :** voir [docs/ACCESS-CREDENTIALS.md](docs/ACCESS-CREDENTIALS.md) pour tous les accès et mots de passe.
+
+## Monitoring (Phase 8)
+
+| Service | URL | Identifiants |
+|---------|-----|--------------|
+| Grafana | https://grafana-repertoire.duckdns.org | admin / repertoire-monitoring |
+| Prometheus | port-forward `svc/kube-prometheus-stack-prometheus 9090:9090` | — |
+| Alertmanager | port-forward `svc/kube-prometheus-stack-alertmanager 9093:9093` | — |
+
+**Prérequis :** ajouter le sous-domaine `grafana-repertoire` dans DuckDNS (même IP que repertoire-app).
+
+**Alertes Slack :** ajouter le secret `ALERTMANAGER_SLACK_WEBHOOK` pour recevoir les alertes (Backend/Frontend/MongoDB down, mémoire élevée, crash loop).
+
+## Backups (Phase 9)
+
+| Service | URL | Identifiants |
+|---------|-----|--------------|
+| MinIO (console) | https://minio-repertoire.duckdns.org | minioadmin / minioadmin |
+| MinIO (API S3) | https://minio-api-repertoire.duckdns.org | — |
+
+**Prérequis :** ajouter `minio-repertoire` et `minio-api-repertoire` dans DuckDNS (même IP que repertoire-app). La console appelle l'API – la console se connecte à l’API depuis le navigateur.

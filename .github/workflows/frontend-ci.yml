@@ -1,0 +1,725 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [develop, preprod, prod]
+  pull_request:
+    branches: [develop, preprod, prod]
+
+permissions:
+  contents: write
+
+jobs:
+  # 1. Lint
+  frontend-lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: cd frontend && npm ci
+
+      - name: Lint
+        run: cd frontend && npm run lint
+
+  # 2. Tests unitaires
+  frontend-test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: cd frontend && npm ci
+
+      - name: Test
+        run: cd frontend && npm run test
+
+  # 3. Build npm (production)
+  frontend-build:
+    name: Build npm
+    runs-on: ubuntu-latest
+    needs: [frontend-lint, frontend-test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: cd frontend && npm ci
+
+      - name: Build
+        run: cd frontend && npm run build
+
+  # 4. Build image Docker
+  frontend-docker:
+    name: Build Docker
+    runs-on: ubuntu-latest
+    needs: frontend-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: false
+          load: true
+          tags: repertoire-frontend:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Save image
+        run: docker save repertoire-frontend:test | gzip > /tmp/frontend.tar.gz
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-image
+          path: /tmp/frontend.tar.gz
+
+  # 5. Scan sécurité (Trivy)
+  frontend-scan:
+    name: Scan Trivy
+    runs-on: ubuntu-latest
+    needs: frontend-docker
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download image
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-image
+
+      - name: Load image
+        run: |
+          IMG=$(find . -name "*.tar.gz" -type f | head -1)
+          gunzip -c "$IMG" | docker load
+
+      - name: Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'repertoire-frontend:test'
+          format: 'table'
+          exit-code: '0'
+
+  # 6. Tests E2E
+  frontend-e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    needs: frontend-docker
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image (for E2E)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: false
+          load: true
+          tags: repertoire-backend:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Download frontend image
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-image
+
+      - name: Load frontend image
+        run: |
+          IMG=$(find . -name "*.tar.gz" -type f | head -1)
+          gunzip -c "$IMG" | docker load
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-chromium-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright
+        run: npm ci && npx playwright install --with-deps chromium
+
+      - name: Start stack
+        run: docker compose -f docker/backend/docker-compose.yml -f docker/frontend/docker-compose.yml --project-directory . up -d
+
+      - name: Wait for backend
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf http://localhost/api/health && echo "Backend ready" && break
+            sleep 2
+          done
+
+      - name: Run E2E tests
+        run: npx playwright test --project=chromium
+
+      - name: Stop stack
+        if: always()
+        run: docker compose -f docker/backend/docker-compose.yml -f docker/frontend/docker-compose.yml --project-directory . down -v
+
+  # 7. CD - Push vers Harbor (uniquement sur push, si HARBOR_ENABLED)
+  frontend-cd:
+    name: CD (Push Harbor)
+    runs-on: ubuntu-latest
+    needs: frontend-docker
+    if: github.event_name == 'push' && vars.HARBOR_ENABLED == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download image
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-image
+
+      - name: Load image
+        run: |
+          IMG=$(find . -name "*.tar.gz" -type f | head -1)
+          gunzip -c "$IMG" | docker load
+
+      - name: Set Harbor project
+        id: harbor
+        run: |
+          case "${{ github.ref_name }}" in
+            develop) PROJECT="dev" ;;
+            preprod) PROJECT="preprod" ;;
+            prod)    PROJECT="prod" ;;
+            *)       PROJECT="dev" ;;
+          esac
+          echo "project=$PROJECT" >> $GITHUB_OUTPUT
+          echo "tag=${{ github.ref_name }}-${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+
+      - name: Configure Docker for Harbor (HTTP ou HTTPS auto-signé)
+        if: vars.HARBOR_HTTPS != 'true'
+        run: |
+          echo '{"insecure-registries":["${{ secrets.HARBOR_URL }}"]}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl restart docker
+
+      - name: Login to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.HARBOR_URL }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Push to Harbor
+        run: |
+          docker tag repertoire-frontend:test ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/repertoire-frontend:${{ steps.harbor.outputs.tag }}
+          docker tag repertoire-frontend:test ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/repertoire-frontend:latest
+          docker push ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/repertoire-frontend:${{ steps.harbor.outputs.tag }}
+          docker push ${{ secrets.HARBOR_URL }}/${{ steps.harbor.outputs.project }}/repertoire-frontend:latest
+
+  # 8a. Deploy Infra - Traefik, cert-manager, Prometheus, Grafana
+  deploy-infra:
+    name: Deploy Infra
+    runs-on: ubuntu-latest
+    needs: frontend-cd
+    if: github.event_name == 'push' && vars.HARBOR_ENABLED == 'true' && vars.KUBERNETES_DEPLOY_ENABLED == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'v3.13.0'
+
+      - name: Configure kubectl
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          mkdir -p ~/.kube
+          # Support base64 ou texte brut (copier-coller du kubeconfig)
+          if echo "$KUBE_CONFIG" | tr -d '\n\r ' | base64 -d > ~/.kube/config 2>/dev/null && [ -s ~/.kube/config ]; then
+            echo "Kubeconfig décodé (base64)"
+          else
+            printf '%s' "$KUBE_CONFIG" > ~/.kube/config
+            echo "Kubeconfig utilisé en texte brut"
+          fi
+          chmod 600 ~/.kube/config
+
+      - name: Set env from branch
+        id: env
+        run: |
+          case "${{ github.ref_name }}" in
+            develop) NS=repertoire-dev; HOST=repertoire-app.duckdns.org; VALS=values-dev.yaml ;;
+            preprod) NS=repertoire-preprod; HOST=repertoire-preprod.duckdns.org; VALS=values-preprod.yaml ;;
+            prod)    NS=repertoire-prod; HOST=repertoire-prod.duckdns.org; VALS=values-prod.yaml ;;
+            *)      NS=repertoire-dev; HOST=repertoire-app.duckdns.org; VALS=values-dev.yaml ;;
+          esac
+          echo "namespace=$NS" >> $GITHUB_OUTPUT
+          echo "host=$HOST" >> $GITHUB_OUTPUT
+          echo "values=$VALS" >> $GITHUB_OUTPUT
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl create namespace ${{ steps.env.outputs.namespace }} --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create namespace repertoire-dev --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Create Harbor secret if not exists
+        run: |
+          kubectl create secret docker-registry harbor-creds \
+            --docker-server=${{ secrets.HARBOR_URL }} \
+            --docker-username=${{ secrets.HARBOR_USERNAME }} \
+            --docker-password=${{ secrets.HARBOR_PASSWORD }} \
+            -n ${{ steps.env.outputs.namespace }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Install Traefik (Ingress controller)
+        run: |
+          helm repo add traefik https://traefik.github.io/charts --force-update
+          helm repo update
+          kubectl create namespace traefik --dry-run=client -o yaml | kubectl apply -f -
+          helm upgrade --install traefik traefik/traefik \
+            -n traefik \
+            --set deployment.replicas=1 \
+            --wait --timeout 2m || true
+
+      - name: Install cert-manager (Let's Encrypt)
+        run: |
+          helm repo add jetstack https://charts.jetstack.io --force-update
+          helm repo update
+          kubectl create namespace cert-manager --dry-run=client -o yaml | kubectl apply -f -
+          helm upgrade --install cert-manager jetstack/cert-manager \
+            -n cert-manager \
+            --set installCRDs=true \
+            --wait --timeout 2m || true
+
+      - name: Create Let's Encrypt ClusterIssuer
+        env:
+          LE_EMAIL: ${{ vars.LETSENCRYPT_EMAIL }}
+        run: |
+          EMAIL="${LE_EMAIL:-thetiptopprojectgroup@gmail.com}"
+          kubectl apply -f - <<EOF
+          apiVersion: cert-manager.io/v1
+          kind: ClusterIssuer
+          metadata:
+            name: letsencrypt-prod
+          spec:
+            acme:
+              server: https://acme-v02.api.letsencrypt.org/directory
+              email: ${EMAIL}
+              privateKeySecretRef:
+                name: letsencrypt-prod
+              solvers:
+                - http01:
+                    ingress:
+                      class: traefik
+          EOF
+
+      - name: Create Certificate (cert-manager, hors Helm)
+        run: |
+          kubectl delete certificate repertoire-tls -n ${{ steps.env.outputs.namespace }} --ignore-not-found=true --wait=false 2>/dev/null || true
+          sleep 3
+          kubectl apply -f - <<EOF
+          apiVersion: cert-manager.io/v1
+          kind: Certificate
+          metadata:
+            name: repertoire-tls
+            namespace: ${{ steps.env.outputs.namespace }}
+          spec:
+            secretName: repertoire-tls
+            issuerRef:
+              name: letsencrypt-prod
+              kind: ClusterIssuer
+            dnsNames:
+              - ${{ steps.env.outputs.host }}
+          EOF
+
+      - name: Install Prometheus + Grafana (Phase 8)
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts --force-update
+          helm repo update
+          kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+          helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+            -n monitoring \
+            --set prometheus.prometheusSpec.retention=7d \
+            --set grafana.adminPassword=repertoire-monitoring \
+            --set grafana.persistence.enabled=false \
+            --wait --timeout 5m || true
+
+      - name: Appliquer règles Prometheus (Phase 8)
+        run: |
+          kubectl apply -f helm/repertoire/monitoring/prometheus-rules.yaml
+
+      - name: Configurer Alertmanager (Slack, si webhook fourni)
+        env:
+          SLACK_WEBHOOK: ${{ secrets.ALERTMANAGER_SLACK_WEBHOOK }}
+        run: |
+          if [[ -n "$SLACK_WEBHOOK" ]]; then
+            sed "s|SLACK_WEBHOOK_PLACEHOLDER|$SLACK_WEBHOOK|g" helm/repertoire/monitoring/alertmanager-config.yaml > /tmp/alertmanager.yaml
+            kubectl create secret generic alertmanager-repertoire-config -n monitoring \
+              --from-file=alertmanager.yaml=/tmp/alertmanager.yaml \
+              --dry-run=client -o yaml | kubectl apply -f -
+            helm upgrade kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+              -n monitoring \
+              --reuse-values \
+              --set alertmanager.alertmanagerSpec.useExistingSecret=true \
+              --set alertmanager.alertmanagerSpec.configSecret=alertmanager-repertoire-config \
+              --wait --timeout 2m || true
+          fi
+
+      - name: Exposer Grafana (IngressRoute)
+        run: |
+          kubectl delete certificate grafana-tls -n monitoring --ignore-not-found=true --wait=false 2>/dev/null || true
+          sleep 2
+          kubectl apply -f - <<'GRAFANAEOF'
+          apiVersion: cert-manager.io/v1
+          kind: Certificate
+          metadata:
+            name: grafana-tls
+            namespace: monitoring
+          spec:
+            secretName: grafana-tls
+            issuerRef:
+              name: letsencrypt-prod
+              kind: ClusterIssuer
+            dnsNames:
+              - grafana-repertoire.duckdns.org
+          ---
+          apiVersion: traefik.io/v1alpha1
+          kind: IngressRoute
+          metadata:
+            name: grafana
+            namespace: monitoring
+          spec:
+            entryPoints:
+              - web
+              - websecure
+            routes:
+              - match: Host(`grafana-repertoire.duckdns.org`) && PathPrefix(`/`)
+                kind: Rule
+                services:
+                  - name: kube-prometheus-stack-grafana
+                    port: 80
+            tls:
+              secretName: grafana-tls
+          GRAFANAEOF
+
+  # 8b. Deploy Backup – MinIO + Restic (Phase 9, develop uniquement)
+  deploy-backup:
+    name: Deploy Backup (MinIO + Restic)
+    runs-on: ubuntu-latest
+    needs: deploy-infra
+    if: github.event_name == 'push' && vars.HARBOR_ENABLED == 'true' && vars.KUBERNETES_DEPLOY_ENABLED == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'v3.13.0'
+
+      - name: Configure kubectl
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          mkdir -p ~/.kube
+          if echo "$KUBE_CONFIG" | tr -d '\n\r ' | base64 -d > ~/.kube/config 2>/dev/null && [ -s ~/.kube/config ]; then
+            echo "Kubeconfig décodé (base64)"
+          else
+            printf '%s' "$KUBE_CONFIG" > ~/.kube/config
+          fi
+          chmod 600 ~/.kube/config
+
+      - name: Login to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.HARBOR_URL }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Build et push image backup
+        run: |
+          docker build -t repertoire-backup:latest -f docker/backup/Dockerfile docker/backup
+          docker tag repertoire-backup:latest ${{ secrets.HARBOR_URL }}/dev/repertoire-backup:latest
+          docker push ${{ secrets.HARBOR_URL }}/dev/repertoire-backup:latest
+
+      - name: Deploy MinIO (image officielle, sans Helm)
+        run: |
+          helm uninstall repertoire-minio -n repertoire-dev --ignore-not-found=true 2>/dev/null || true
+          sleep 5
+          kubectl apply -f helm/repertoire/minio/minio-deployment.yaml
+          kubectl rollout status deployment/repertoire-minio -n repertoire-dev --timeout=2m
+      - name: Créer bucket repertoire-backups
+        run: |
+          kubectl delete job minio-init-bucket -n repertoire-dev --ignore-not-found=true
+          kubectl apply -f - <<'BUCKET'
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: minio-init-bucket
+            namespace: repertoire-dev
+          spec:
+            ttlSecondsAfterFinished: 120
+            template:
+              spec:
+                restartPolicy: OnFailure
+                containers:
+                  - name: mc
+                    image: minio/mc:latest
+                    command:
+                      - /bin/sh
+                      - -c
+                      - |
+                        sleep 10
+                        mc alias set m http://repertoire-minio:9000 minioadmin minioadmin
+                        mc mb m/repertoire-backups --ignore-existing
+                        echo Bucket OK
+          BUCKET
+          kubectl wait --for=condition=complete job/minio-init-bucket -n repertoire-dev --timeout=90s || true
+
+      - name: Create backup credentials secret
+        run: |
+          kubectl create secret generic repertoire-backup-credentials -n repertoire-dev \
+            --from-literal=minio-access-key=minioadmin \
+            --from-literal=minio-secret-key=minioadmin \
+            --from-literal=restic-password=repertoire-backup-dev \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Exposer MinIO Console et API en HTTPS (IngressRoute)
+        run: |
+          kubectl delete certificate minio-tls -n repertoire-dev --ignore-not-found=true --wait=false 2>/dev/null || true
+          kubectl delete certificate minio-api-tls -n repertoire-dev --ignore-not-found=true --wait=false 2>/dev/null || true
+          sleep 2
+          kubectl apply -f - <<'MINIOEOF'
+          apiVersion: cert-manager.io/v1
+          kind: Certificate
+          metadata:
+            name: minio-tls
+            namespace: repertoire-dev
+          spec:
+            secretName: minio-tls
+            issuerRef:
+              name: letsencrypt-prod
+              kind: ClusterIssuer
+            dnsNames:
+              - minio-repertoire.duckdns.org
+          ---
+          apiVersion: cert-manager.io/v1
+          kind: Certificate
+          metadata:
+            name: minio-api-tls
+            namespace: repertoire-dev
+          spec:
+            secretName: minio-api-tls
+            issuerRef:
+              name: letsencrypt-prod
+              kind: ClusterIssuer
+            dnsNames:
+              - minio-api-repertoire.duckdns.org
+          ---
+          apiVersion: traefik.io/v1alpha1
+          kind: IngressRoute
+          metadata:
+            name: minio-console
+            namespace: repertoire-dev
+          spec:
+            entryPoints:
+              - web
+              - websecure
+            routes:
+              - match: Host(`minio-repertoire.duckdns.org`) && PathPrefix(`/`)
+                kind: Rule
+                services:
+                  - name: repertoire-minio
+                    port: 9001
+            tls:
+              secretName: minio-tls
+          ---
+          apiVersion: traefik.io/v1alpha1
+          kind: IngressRoute
+          metadata:
+            name: minio-api
+            namespace: repertoire-dev
+          spec:
+            entryPoints:
+              - web
+              - websecure
+            routes:
+              - match: Host(`minio-api-repertoire.duckdns.org`) && PathPrefix(`/`)
+                kind: Rule
+                services:
+                  - name: repertoire-minio
+                    port: 9000
+            tls:
+              secretName: minio-api-tls
+          MINIOEOF
+
+      - name: Attendre les certificats MinIO (Let's Encrypt)
+        run: sleep 45
+
+  # 8c. Deploy App – Helm repertoire
+  deploy:
+    name: Deploy K8s
+    runs-on: ubuntu-latest
+    needs: [deploy-infra, deploy-backup]
+    if: github.event_name == 'push' && vars.HARBOR_ENABLED == 'true' && vars.KUBERNETES_DEPLOY_ENABLED == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'v3.13.0'
+
+      - name: Configure kubectl
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          mkdir -p ~/.kube
+          if echo "$KUBE_CONFIG" | tr -d '\n\r ' | base64 -d > ~/.kube/config 2>/dev/null && [ -s ~/.kube/config ]; then
+            echo "Kubeconfig décodé (base64)"
+          else
+            printf '%s' "$KUBE_CONFIG" > ~/.kube/config
+          fi
+          chmod 600 ~/.kube/config
+
+      - name: Set env from branch
+        id: env
+        run: |
+          case "${{ github.ref_name }}" in
+            develop) NS=repertoire-dev; VALS=values-dev.yaml ;;
+            preprod) NS=repertoire-preprod; VALS=values-preprod.yaml ;;
+            prod)    NS=repertoire-prod; VALS=values-prod.yaml ;;
+            *)      NS=repertoire-dev; VALS=values-dev.yaml ;;
+          esac
+          echo "namespace=$NS" >> $GITHUB_OUTPUT
+          echo "values=$VALS" >> $GITHUB_OUTPUT
+
+      - name: Deploy / Upgrade Helm
+        run: |
+          helm upgrade --install repertoire ./helm/repertoire \
+            -n ${{ steps.env.outputs.namespace }} \
+            -f helm/repertoire/values.yaml \
+            -f helm/repertoire/${{ steps.env.outputs.values }} \
+            --timeout 3m
+          echo "Helm deploy terminé, attente des pods..."
+
+      - name: Force MongoDB pod refresh (si bloqué)
+        run: |
+          kubectl delete pod -l app.kubernetes.io/component=mongodb -n ${{ steps.env.outputs.namespace }} --ignore-not-found=true || true
+          sleep 10
+
+      - name: Wait for MongoDB
+        run: |
+          kubectl rollout status statefulset/repertoire-mongodb -n ${{ steps.env.outputs.namespace }} --timeout=5m
+
+      - name: Wait for Backend and Frontend
+        run: |
+          kubectl rollout status deployment/repertoire-backend -n ${{ steps.env.outputs.namespace }} --timeout=5m
+          kubectl rollout status deployment/repertoire-frontend -n ${{ steps.env.outputs.namespace }} --timeout=5m
+
+      - name: Debug pods (si échec)
+        if: failure()
+        run: |
+          echo "=== Pods ==="
+          kubectl get pods -n ${{ steps.env.outputs.namespace }} -o wide
+          echo "=== Events ==="
+          kubectl get events -n ${{ steps.env.outputs.namespace }} --sort-by='.lastTimestamp' | tail -30
+
+      - name: Restart deployments (pull latest images)
+        run: |
+          kubectl rollout restart deployment -n ${{ steps.env.outputs.namespace }} -l app.kubernetes.io/instance=repertoire
+          kubectl rollout status deployment -n ${{ steps.env.outputs.namespace }} -l app.kubernetes.io/instance=repertoire --timeout=5m
+
+  # 8d. Auto-merge : develop → preprod → prod (si deploy OK)
+  auto-merge:
+    name: Auto-merge develop→preprod→prod
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.event_name == 'push' && github.ref_name != 'prod'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge develop → preprod
+        if: github.ref_name == 'develop'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin preprod
+          git checkout preprod
+          git merge origin/develop -m "chore: auto-merge develop → preprod"
+          git push origin preprod
+
+      - name: Merge preprod → prod
+        if: github.ref_name == 'preprod'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin prod
+          git checkout prod
+          git merge origin/preprod -m "chore: auto-merge preprod → prod"
+          git push origin prod
+
+  # 9. Notifications (Phase 2) – Slack ou Discord
+  notify:
+    name: Notify
+    runs-on: ubuntu-latest
+    needs: [frontend-lint, frontend-test, frontend-build, frontend-docker, frontend-scan, frontend-e2e]
+    if: always()
+    steps:
+      - name: Déterminer le statut
+        id: status
+        run: |
+          FAILED=false
+          for r in "${{ needs.frontend-lint.result }}" "${{ needs.frontend-test.result }}" "${{ needs.frontend-build.result }}" "${{ needs.frontend-docker.result }}" "${{ needs.frontend-scan.result }}" "${{ needs.frontend-e2e.result }}"; do
+            [[ "$r" == "failure" ]] && FAILED=true && break
+          done
+          if [[ "$FAILED" == "true" ]]; then
+            echo "status=ÉCHEC" >> $GITHUB_OUTPUT
+            echo "emoji=❌" >> $GITHUB_OUTPUT
+            echo "color=15158332" >> $GITHUB_OUTPUT
+          else
+            echo "status=Succès" >> $GITHUB_OUTPUT
+            echo "emoji=✅" >> $GITHUB_OUTPUT
+            echo "color=3066993" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Notifier Slack
+        run: |
+          [[ -z "${{ secrets.SLACK_WEBHOOK_URL }}" ]] && exit 0
+          curl -sS -X POST -H 'Content-type: application/json' \
+            --data '{"text":"${{ steps.status.outputs.emoji }} *Frontend CI* – ${{ steps.status.outputs.status }}\nBranche: `${{ github.ref_name }}` | Commit: `${{ github.sha }}`\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Voir le workflow>"}' \
+            "${{ secrets.SLACK_WEBHOOK_URL }}" || true
+
+      - name: Notifier Discord
+        run: |
+          [[ -z "${{ secrets.DISCORD_WEBHOOK_URL }}" ]] && exit 0
+          curl -sS -X POST -H 'Content-type: application/json' \
+            --data '{"embeds":[{"title":"${{ steps.status.outputs.emoji }} Frontend CI – ${{ steps.status.outputs.status }}","color":${{ steps.status.outputs.color }},"fields":[{"name":"Branche","value":"`${{ github.ref_name }}`","inline":true},{"name":"Commit","value":"`${{ github.sha }}`","inline":true},{"name":"Workflow","value":"[Voir](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})","inline":false}]}]}' \
+            "${{ secrets.DISCORD_WEBHOOK_URL }}" || true
+
+

@@ -1,0 +1,39 @@
+# Valeurs pour l'environnement dev (develop)
+# Images depuis Harbor : repertoire-harbor.duckdns.org/dev/repertoire-backend:latest
+environment: dev
+
+imageRegistry: "repertoire-harbor.duckdns.org/dev"
+imagePullSecrets: [harbor-creds]
+
+# Ingress + TLS (Phase 6) - ajouter repertoire-app.duckdns.org dans DuckDNS
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: repertoire-app.duckdns.org
+  tls:
+    - secretName: repertoire-tls
+      hosts:
+        - repertoire-app.duckdns.org
+
+backend:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+
+frontend:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+  service:
+    type: ClusterIP  # Ingress (Traefik) expose l'app
+
+mongodb:
+  persistence:
+    enabled: false  # emptyDir pour dev
+
+# Phase 9 – Backups (activer si MinIO déployé)
+backup:
+  enabled: true
+  schedule: "0 2 * * 0"  # dimanche 2h (hebdo pour dev)

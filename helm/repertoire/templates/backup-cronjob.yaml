@@ -1,0 +1,60 @@
+{{- if .Values.backup.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "repertoire.fullname" . }}-mongodb-backup
+  labels:
+    {{- include "repertoire.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup
+spec:
+  schedule: {{ .Values.backup.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- range . }}
+            - name: {{ . }}
+            {{- end }}
+          {{- end }}
+          containers:
+            - name: backup
+              image: {{ include "repertoire.image" (merge (dict "repository" .Values.backup.image.repository "tag" .Values.backup.image.tag) .) }}
+              imagePullPolicy: {{ .Values.backup.image.pullPolicy | default "IfNotPresent" }}
+              env:
+                - name: MONGODB_URI
+                  value: mongodb://{{ include "repertoire.fullname" . }}-mongodb:27017/{{ .Values.mongodb.database }}
+                - name: RESTIC_REPOSITORY
+                  value: s3:http://{{ .Values.backup.minioHost }}:9000/repertoire-backups
+                - name: RESTIC_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "repertoire.fullname" . }}-backup-credentials
+                      key: restic-password
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "repertoire.fullname" . }}-backup-credentials
+                      key: minio-access-key
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "repertoire.fullname" . }}-backup-credentials
+                      key: minio-secret-key
+                - name: KEEP_DAILY
+                  value: {{ .Values.backup.retention.keepDaily | default 7 | quote }}
+                - name: KEEP_WEEKLY
+                  value: {{ .Values.backup.retention.keepWeekly | default 4 | quote }}
+              resources:
+                requests:
+                  memory: "256Mi"
+                  cpu: "200m"
+                limits:
+                  memory: "512Mi"
+                  cpu: "500m"
+{{- end }}
