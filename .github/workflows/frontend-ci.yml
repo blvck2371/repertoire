@@ -703,7 +703,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git push origin HEAD:prod
+          # --force : prod doit refléter exactement preprod (évite "non fast forward" si prod a divergé)
+          git push origin HEAD:prod --force
           sleep 3
 
       - name: Déclencher pipelines prod (frontend + backend)
