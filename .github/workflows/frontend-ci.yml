@@ -5,6 +5,11 @@ on:
     branches: [develop, preprod, prod]
   pull_request:
     branches: [develop, preprod, prod]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branche à exécuter (défaut: branche actuelle)'
+        required: false
 
 permissions:
   contents: write
@@ -188,12 +193,12 @@ jobs:
         if: always()
         run: docker compose -f docker/backend/docker-compose.yml -f docker/frontend/docker-compose.yml --project-directory . down -v
 
-  # 7. CD - Push vers Harbor (uniquement sur push, si HARBOR_ENABLED)
+  # 7. CD - Push vers Harbor (push ou workflow_dispatch, si HARBOR_ENABLED)
   frontend-cd:
     name: CD (Push Harbor)
     runs-on: ubuntu-latest
     needs: frontend-docker
-    if: github.event_name == 'push' && vars.HARBOR_ENABLED == 'true'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && vars.HARBOR_ENABLED == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -244,7 +249,7 @@ jobs:
     name: Deploy Infra
     runs-on: ubuntu-latest
     needs: frontend-cd
-    if: github.event_name == 'push' && vars.HARBOR_ENABLED == 'true' && vars.KUBERNETES_DEPLOY_ENABLED == 'true'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && vars.HARBOR_ENABLED == 'true' && vars.KUBERNETES_DEPLOY_ENABLED == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -430,7 +435,7 @@ jobs:
     name: Deploy Backup (MinIO + Restic)
     runs-on: ubuntu-latest
     needs: deploy-infra
-    if: github.event_name == 'push' && vars.HARBOR_ENABLED == 'true' && vars.KUBERNETES_DEPLOY_ENABLED == 'true'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && vars.HARBOR_ENABLED == 'true' && vars.KUBERNETES_DEPLOY_ENABLED == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -583,7 +588,7 @@ jobs:
     name: Deploy K8s
     runs-on: ubuntu-latest
     needs: [deploy-infra, deploy-backup]
-    if: github.event_name == 'push' && vars.HARBOR_ENABLED == 'true' && vars.KUBERNETES_DEPLOY_ENABLED == 'true'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && vars.HARBOR_ENABLED == 'true' && vars.KUBERNETES_DEPLOY_ENABLED == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -653,7 +658,7 @@ jobs:
           kubectl rollout status deployment -n ${{ steps.env.outputs.namespace }} -l app.kubernetes.io/instance=repertoire --timeout=5m
 
   # 8d. Auto-merge : develop → preprod → prod (si pipeline OK)
-  # S'exécute après deploy (si deploy a tourné) OU après les jobs build si deploy est ignoré (vars non définies)
+  # Push avec GITHUB_TOKEN puis workflow_dispatch car les push GITHUB_TOKEN ne déclenchent PAS d'autres workflows
   auto-merge:
     name: Auto-merge develop→preprod→prod
     runs-on: ubuntu-latest
@@ -666,23 +671,46 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push develop → preprod
         if: github.ref_name == 'develop'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          # Push direct : crée preprod si inexistante, sinon la met à jour
           git push origin HEAD:preprod
+          sleep 3
+
+      - name: Déclencher pipelines preprod (frontend + backend)
+        if: github.ref_name == 'develop'
+        run: |
+          for w in frontend-ci.yml backend-ci.yml; do
+            curl -sS -X POST \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/workflows/$w/dispatches" \
+              -d '{"ref":"preprod"}'
+            echo "Déclenché: $w sur preprod"
+          done
 
       - name: Push preprod → prod
         if: github.ref_name == 'preprod'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          # Push direct : crée prod si inexistante, sinon la met à jour
           git push origin HEAD:prod
+          sleep 3
+
+      - name: Déclencher pipelines prod (frontend + backend)
+        if: github.ref_name == 'preprod'
+        run: |
+          for w in frontend-ci.yml backend-ci.yml; do
+            curl -sS -X POST \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/workflows/$w/dispatches" \
+              -d '{"ref":"prod"}'
+            echo "Déclenché: $w sur prod"
+          done
 
   # 9. Notifications (Phase 2) – Slack ou Discord
   notify:

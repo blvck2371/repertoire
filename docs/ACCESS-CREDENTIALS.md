@@ -57,6 +57,12 @@ Document de référence pour tous les accès et identifiants du projet.
 
 ---
 
+## Auto-merge develop → preprod → prod
+
+Les push avec `GITHUB_TOKEN` ne déclenchent **pas** d'autres workflows. Le workflow utilise donc l'API `workflow_dispatch` pour déclencher les pipelines sur preprod et prod après chaque push. **Aucun secret supplémentaire requis.**
+
+---
+
 ## Prometheus / Alertmanager
 
 | Service | Accès | Identifiants |
