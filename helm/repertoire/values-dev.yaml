@@ -33,6 +33,13 @@ frontend:
   replicaCount: 1
   autoscaling:
     enabled: false
+  resources:
+    requests:
+      memory: "32Mi"
+      cpu: "25m"
+    limits:
+      memory: "64Mi"
+      cpu: "100m"
   service:
     type: ClusterIP  # Ingress (Traefik) expose l'app
 
@@ -42,12 +49,12 @@ mongodb:
   resources:
     requests:
       memory: "64Mi"
-      cpu: "50m"
+      cpu: "25m"
     limits:
       memory: "128Mi"
-      cpu: "250m"
+      cpu: "200m"
 
-# Phase 9 – Backups (activer si MinIO déployé)
+# Phase 9 – Backups (désactivé en dev pour cluster limité en CPU)
 backup:
-  enabled: true
-  schedule: "0 * * * *"  # toutes les heures (cluster limité en CPU)
+  enabled: false
+  schedule: "0 * * * *"
