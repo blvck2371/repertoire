@@ -41,13 +41,13 @@ mongodb:
     enabled: false  # emptyDir pour dev
   resources:
     requests:
-      memory: "128Mi"
-      cpu: "100m"
+      memory: "64Mi"
+      cpu: "50m"
     limits:
-      memory: "256Mi"
-      cpu: "500m"
+      memory: "128Mi"
+      cpu: "250m"
 
 # Phase 9 – Backups (activer si MinIO déployé)
 backup:
   enabled: true
-  schedule: "*/5 * * * *"  # toutes les 5 minutes
+  schedule: "0 * * * *"  # toutes les heures (cluster limité en CPU)

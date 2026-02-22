@@ -62,4 +62,4 @@ mongodb:
 # Phase 9 – Backups (activer si MinIO déployé)
 backup:
   enabled: true
-  schedule: "*/5 * * * *"  # toutes les 5 minutes
+  schedule: "0 2 * * *"  # quotidien 2h
