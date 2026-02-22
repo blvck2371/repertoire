@@ -59,7 +59,13 @@ Document de référence pour tous les accès et identifiants du projet.
 
 ## Auto-merge develop → preprod → prod
 
-Les push avec `GITHUB_TOKEN` ne déclenchent **pas** d'autres workflows. Le workflow utilise donc l'API `workflow_dispatch` pour déclencher les pipelines sur preprod et prod après chaque push. **Aucun secret supplémentaire requis.**
+Les push avec `GITHUB_TOKEN` ne déclenchent **pas** d'autres workflows. Le workflow utilise l'API `workflow_dispatch` pour déclencher les pipelines. Si ça ne fonctionne pas, utilisez un **PAT** :
+
+**Option A (recommandée si workflow_dispatch échoue)** – Secret `GH_PAT` :
+1. GitHub → Settings → Developer settings → Personal access tokens → Générer (classic, scope `repo`)
+2. Repo → Settings → Secrets → Actions → New → nom : `GH_PAT`, valeur : le token
+3. Modifier le workflow : remplacer le checkout de l'auto-merge par `token: ${{ secrets.GH_PAT }}`
+4. Le push déclenchera alors les pipelines naturellement
 
 ---
 
