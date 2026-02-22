@@ -19,11 +19,11 @@ backend:
   replicaCount: 2
   resources:
     requests:
-      memory: "256Mi"
-      cpu: "200m"
+      memory: "128Mi"
+      cpu: "100m"
     limits:
-      memory: "512Mi"
-      cpu: "1000m"
+      memory: "256Mi"
+      cpu: "500m"
   autoscaling:
     enabled: true
     minReplicas: 2
@@ -34,11 +34,11 @@ frontend:
   replicaCount: 2
   resources:
     requests:
-      memory: "128Mi"
-      cpu: "100m"
+      memory: "64Mi"
+      cpu: "50m"
     limits:
-      memory: "256Mi"
-      cpu: "500m"
+      memory: "128Mi"
+      cpu: "200m"
   autoscaling:
     enabled: true
     minReplicas: 2

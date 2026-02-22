@@ -5,6 +5,7 @@ metadata:
   labels:
     {{- include "repertoire.frontend.labels" . | nindent 4 }}
 spec:
+  progressDeadlineSeconds: 900
   replicas: {{ .Values.frontend.replicaCount }}
   selector:
     matchLabels:
