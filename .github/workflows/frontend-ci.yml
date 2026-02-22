@@ -635,12 +635,14 @@ jobs:
           echo "namespace=$NS" >> $GITHUB_OUTPUT
           echo "values=$VALS" >> $GITHUB_OUTPUT
 
-      - name: Nettoyer MongoDB prod (PVC/Pod bloqués)
-        if: steps.env.outputs.namespace == 'repertoire-prod'
+      - name: Nettoyer MongoDB (Pod/StatefulSet bloqués)
         run: |
-          kubectl delete statefulset repertoire-mongodb -n repertoire-prod --ignore-not-found=true --wait=false 2>/dev/null || true
-          kubectl delete pvc data-repertoire-mongodb-0 -n repertoire-prod --ignore-not-found=true 2>/dev/null || true
-          sleep 5
+          NS=${{ steps.env.outputs.namespace }}
+          kubectl delete pod -l app.kubernetes.io/component=mongodb -n $NS --ignore-not-found=true --force --grace-period=0 2>/dev/null || true
+          kubectl delete statefulset repertoire-mongodb -n $NS --ignore-not-found=true --wait=false 2>/dev/null || true
+          # Ne jamais supprimer le PVC en preprod/prod = les données MongoDB sont conservées
+          # (dev utilise emptyDir, pas de PVC)
+          sleep 10
 
       - name: Deploy / Upgrade Helm
         run: |
