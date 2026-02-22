@@ -666,6 +666,10 @@ jobs:
         run: |
           echo "=== Pods ==="
           kubectl get pods -n ${{ steps.env.outputs.namespace }} -o wide
+          echo "=== PVC ==="
+          kubectl get pvc -n ${{ steps.env.outputs.namespace }}
+          echo "=== Describe MongoDB pod (si Pending) ==="
+          kubectl describe pod -l app.kubernetes.io/component=mongodb -n ${{ steps.env.outputs.namespace }} 2>/dev/null | tail -50 || true
           echo "=== Events ==="
           kubectl get events -n ${{ steps.env.outputs.namespace }} --sort-by='.lastTimestamp' | tail -30
 

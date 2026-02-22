@@ -47,13 +47,14 @@ frontend:
 
 mongodb:
   replicaCount: 1
+  # Ressources alignées sur preprod pour éviter Pending (cluster partagé dev+preprod+prod)
   resources:
     requests:
-      memory: "512Mi"
-      cpu: "500m"
+      memory: "256Mi"
+      cpu: "250m"
     limits:
-      memory: "1Gi"
-      cpu: "2000m"
+      memory: "512Mi"
+      cpu: "1000m"
   persistence:
     enabled: true
-    size: 20Gi
+    size: 10Gi
