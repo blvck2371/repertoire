@@ -1,0 +1,53 @@
+# Job de test de restauration – à appliquer MANUELLEMENT
+# ATTENTION : Ce job restaure les données depuis Restic et ÉCRASE la base MongoDB actuelle.
+#
+# Prérequis :
+# 1. Un backup doit exister (kubectl create job backup-xxx --from=cronjob/repertoire-mongodb-backup -n repertoire-dev)
+# 2. L'image repertoire-backup doit contenir restore.sh (rebuild après ajout)
+#
+# Usage :
+#   # Remplacer NAMESPACE par repertoire-dev, repertoire-preprod ou repertoire-prod
+#   export NS=repertoire-dev
+#   kubectl apply -f docs/restore-job-example.yaml -n $NS
+#
+# Suivre l'exécution :
+#   kubectl logs -f job/repertoire-restore-test -n $NS
+#
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: repertoire-restore-test
+spec:
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: harbor-creds
+      containers:
+        - name: restore
+          image: repertoire-harbor.duckdns.org/dev/repertoire-backup:latest
+          command: ["/restore.sh"]
+          args: ["latest"]
+          env:
+            - name: MONGODB_URI
+              value: mongodb://repertoire-mongodb:27017/repertoire
+            - name: RESTIC_REPOSITORY
+              value: s3:http://repertoire-minio:9000/repertoire-backups
+            - name: RESTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: repertoire-backup-credentials
+                  key: restic-password
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: repertoire-backup-credentials
+                  key: minio-access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: repertoire-backup-credentials
+                  key: minio-secret-key

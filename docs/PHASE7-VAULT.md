@@ -76,7 +76,64 @@ Vault enregistre les accès aux secrets. Pour activer l'audit :
 kubectl exec -n vault vault-0 -- vault audit enable file file_path=/vault/logs/audit.log
 ```
 
-## Désactiver Vault
+## Comment tester Vault
+
+### 1. Activer Vault
+
+Dans **GitHub** : Settings → Variables and secrets → Variables → ajouter ou modifier :
+- `VAULT_ENABLED` = `true`
+
+Puis faire un push sur `develop` pour déclencher le déploiement.
+
+### 2. Vérifier le déploiement
+
+```bash
+# Vault est-il déployé ?
+kubectl get pods -n vault
+
+# Le job d'init a-t-il réussi ?
+kubectl get job vault-init -n vault
+kubectl logs job/vault-init -n vault
+
+# Le backend a-t-il le sidecar Vault (2 init + 2 containers) ?
+kubectl get pod -l app.kubernetes.io/component=backend -n repertoire-dev -o jsonpath='{.items[0].spec.containers[*].name}'
+# Devrait afficher : vault-agent backend (ou vault-agent-init vault-agent backend)
+```
+
+### 3. Vérifier l'injection du secret
+
+```bash
+# Le secret MongoDB est-il injecté dans le pod ?
+kubectl exec -n repertoire-dev deployment/repertoire-backend -c backend -- cat /vault/secrets/mongodb 2>/dev/null
+# Devrait afficher : mongodb://repertoire-mongodb:27017/repertoire
+```
+
+### 4. Tester l'application
+
+1. Ouvrir https://repertoire-app.duckdns.org (dev)
+2. Ajouter un contact
+3. Si l'ajout fonctionne → le backend lit bien MONGODB_URI depuis Vault
+
+### 5. Vérifier dans Vault (optionnel)
+
+```bash
+# Se connecter au pod Vault
+kubectl exec -it -n vault vault-0 -- sh
+
+# Lister les secrets (token root en mode dev)
+export VAULT_ADDR='http://127.0.0.1:8200'
+export VAULT_TOKEN='root'
+vault kv get secret/mongodb
+# Devrait afficher MONGODB_URI
+```
+
+### 6. Désactiver Vault
+
+Mettre `VAULT_ENABLED` = `false` dans les variables GitHub. Le backend reviendra aux variables d'environnement classiques.
+
+---
+
+## Désactiver Vault (via Helm)
 
 Dans `values-dev.yaml` (ou preprod/prod) :
 

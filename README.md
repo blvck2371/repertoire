@@ -10,8 +10,8 @@
 - [x] Branches principales : `develop`, `preprod`, `prod`
 - [x] Workflow CI/CD sur develop
 - [x] Versioning sémantique (v1.0.0, v1.1.0…)
-- [ ] Workflow sur preprod/prod *(déploiement multi-env)*
-- [ ] Pull Requests et revues de code via GitHub
+- [x] Workflow sur preprod/prod *(déploiement multi-env)*
+- [x] Pull Requests et revues de code via GitHub
 
 ### PHASE 2 – Intégration continue (GitHub Actions)
 - [x] Pipeline CI à chaque push/PR
@@ -31,19 +31,19 @@
 - [x] Dockerfile frontend optimisé
 - [x] Images légères et immuables
 - [x] Docker Compose pour environnement local (dev)
-- [ ] Versionnement des images selon branche *(Phase 4 – CD)*
+- [x] Versionnement des images selon branche (Harbor dev/preprod/prod)
 
 ### PHASE 4 – Registry privé (Harbor)
 - [x] Installation serveur Harbor (HTTPS + domaine)
 - [x] Projets distincts (dev, preprod, prod) – mapping branche → projet
 - [x] Push automatique des images vers Harbor
-- [ ] Scan vulnérabilités (Trivy) – optionnel
+- [x] Scan vulnérabilités (Trivy)
 - [x] Gestion des accès (utilisateur github-actions)
 - [x] Stockage sécurisé des images
 
 ### PHASE 5 – Orchestration (Kubernetes + Helm)
 - [x] Cluster Kubernetes (déploiement auto sur develop)
-- [x] Namespace repertoire-dev (preprod/prod : à activer)
+- [x] Namespaces repertoire-dev, repertoire-preprod, repertoire-prod
 - [x] Backend et Frontend en Deployment
 - [x] Base MongoDB en StatefulSet
 - [x] Helm Charts – voir [docs/KUBERNETES.md](docs/KUBERNETES.md)
@@ -76,16 +76,28 @@
 - [x] Backups hebdomadaires dev/preprod
 - [x] Stockage chiffré via MinIO (compatible S3)
 - [x] Sauvegardes incrémentales versionnées (Restic)
-- [ ] Tests de restauration mensuels en sandbox
+- [x] Persistance MongoDB en prod (PVC)
+- [x] Tests de restauration mensuels en sandbox
 - [x] Automatisation via CronJob Kubernetes
 
 ### PHASE 10 – Infrastructure & hébergement (DigitalOcean)
-- [ ] Infrastructure Cloud (DigitalOcean Optimized Droplets)
-- [ ] Minimum 8 vCores / 32 Go RAM / 1 To SSD
+- [x] Infrastructure Cloud (DigitalOcean Kubernetes)
+- [ ] Minimum 8 vCores / 32 Go RAM / 1 To SSD *(optionnel)*
 - [ ] Bande passante > 500 Mbps
 - [ ] SLA > 99,9%
 - [ ] Snapshots automatiques des Droplets
 - [ ] Block Storage + réplication multi-régions
+
+---
+
+## Prochaines étapes
+
+| Priorité | Tâche | Fichier / Action |
+|----------|-------|------------------|
+| 1 | **ELK Stack** (Phase 8) | Centralisation des logs – déployer Elasticsearch, Logstash, Kibana |
+| 2 | **Rotation des secrets Vault** (Phase 7) | Automatiser la rotation de MONGODB_URI |
+| 3 | **Audit trail Vault** (Phase 7) | `vault audit enable file` |
+| 4 | **Haute disponibilité** (Phase 6) | Multi-région, load balancing avancé |
 
 ---
 
@@ -124,7 +136,7 @@ npm run test:e2e       # Lancer les tests E2E
 - **Phase 1 :** Créer les branches `preprod` et `prod` sur GitHub si elles n’existent pas
 - **Phase 4 :** *(fait)* Harbor HTTPS + domaine configuré
 - **Phase 5 :** *(fait)* Cluster + deploy auto. Optionnel : preprod/prod
-- **Phase 7 :** Vault (secrets MongoDB). **Phase 8 :** ELK (logs). **Phase 9 :** Tests restauration
+- **Phase 7 :** Tester Vault → voir [docs/PHASE7-VAULT.md](docs/PHASE7-VAULT.md). **Phase 8 :** ELK (logs). **Phase 9 :** Tests restauration
 - **Phase 2 :** Configurer les notifications CI : ajouter le secret `SLACK_WEBHOOK_URL` ou `DISCORD_WEBHOOK_URL` dans GitHub (Settings → Secrets)
 - **Phase 10 :** Créer les Droplets DigitalOcean (8 vCores, 32 Go RAM, 1 To SSD)
 

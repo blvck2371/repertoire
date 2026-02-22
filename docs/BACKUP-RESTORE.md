@@ -33,12 +33,43 @@ kubectl create job -n repertoire-dev backup-manual --from=cronjob/repertoire-mon
 
 ## Restaurer
 
-1. **Lister les snapshots** (depuis un pod avec restic) :
+### Méthode 1 : Job Kubernetes (recommandé)
+
+1. **Lister les snapshots** disponibles :
    ```bash
-   kubectl run -it --rm restic --image=restic/restic -n repertoire-dev -- \
-     restic snapshots --tag repertoire-mongodb
+   kubectl run -it --rm restic --image=restic/restic -n repertoire-dev \
+     --env="RESTIC_REPOSITORY=s3:http://repertoire-minio:9000/repertoire-backups" \
+     --env="RESTIC_PASSWORD=repertoire-backup-dev" \
+     --env="AWS_ACCESS_KEY_ID=minioadmin" \
+     --env="AWS_SECRET_ACCESS_KEY=minioadmin" \
+     --restart=Never -- restic snapshots --tag repertoire-mongodb
+   ```
+   *(Remplacer le mot de passe si différent – voir secret `repertoire-backup-credentials`)*
+
+2. **Appliquer le job de restauration** (remplacer `repertoire-dev` par le namespace cible) :
+   ```bash
+   kubectl apply -f docs/restore-job-example.yaml -n repertoire-dev
    ```
 
-2. **Restauration** : utiliser le script `docker/backup/restore.sh` avec les mêmes variables d'environnement que le CronJob (MONGODB_URI, RESTIC_REPOSITORY, RESTIC_PASSWORD, AWS_*).
+3. **Suivre l'exécution** :
+   ```bash
+   kubectl logs -f job/repertoire-restore-test -n repertoire-dev
+   ```
 
-3. **En prod** : changer le mot de passe Restic par un secret et le conserver en lieu sûr.
+4. **Vérifier** : ouvrir l'app (ex. https://repertoire-app.duckdns.org) et confirmer que les données restaurées sont présentes.
+
+### Méthode 2 : Script manuel (depuis un pod)
+
+Utiliser le script `docker/backup/restore.sh` avec les mêmes variables d'environnement que le CronJob (MONGODB_URI, RESTIC_REPOSITORY, RESTIC_PASSWORD, AWS_*).
+
+### Test de restauration mensuel (sandbox)
+
+Pour valider la procédure sans impacter la prod :
+
+1. **Sur dev** : lancer un backup, puis un restore. Vérifier que les données réapparaissent.
+2. **Sur preprod** : idem, en dehors des heures de pointe.
+3. **Sur prod** : prévoir une fenêtre de maintenance ; le restore écrase les données actuelles.
+
+### En prod
+
+Changer le mot de passe Restic par un secret fort et le conserver en lieu sûr (coffre-fort, gestionnaire de mots de passe).

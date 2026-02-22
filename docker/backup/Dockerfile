@@ -10,5 +10,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 COPY backup.sh /backup.sh
-RUN chmod +x /backup.sh
+COPY restore.sh /restore.sh
+RUN chmod +x /backup.sh /restore.sh
 ENTRYPOINT ["/backup.sh"]
