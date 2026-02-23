@@ -1,0 +1,32 @@
+# Elasticsearch – single node, ressources minimales pour cluster limité
+replicas: 1
+minimumMasterNodes: 1
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "512Mi"
+  limits:
+    cpu: "500m"
+    memory: "1Gi"
+
+volumeClaimTemplate:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 5Gi
+
+esJavaOpts: "-Xmx256m -Xms256m"
+
+antiAffinity: "soft"
+
+persistence:
+  enabled: true
+
+extraEnvs:
+  - name: discovery.type
+    value: single-node
+  - name: xpack.security.enabled
+    value: "false"
+  - name: xpack.ml.enabled
+    value: "false"

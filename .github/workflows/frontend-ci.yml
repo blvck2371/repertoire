@@ -424,6 +424,63 @@ jobs:
               secretName: grafana-tls
           GRAFANAEOF
 
+      - name: Install ELK Stack (Phase 8 – Elasticsearch, Kibana, Filebeat)
+        if: vars.ELK_ENABLED == 'true'
+        run: |
+          helm repo add elastic https://helm.elastic.co --force-update
+          helm repo update
+          kubectl create namespace logging --dry-run=client -o yaml | kubectl apply -f -
+          helm upgrade --install elasticsearch elastic/elasticsearch \
+            -n logging \
+            -f helm/repertoire/elk/elasticsearch-values.yaml \
+            --wait --timeout 5m || true
+          helm upgrade --install kibana elastic/kibana \
+            -n logging \
+            -f helm/repertoire/elk/kibana-values.yaml \
+            --wait --timeout 3m || true
+          helm upgrade --install filebeat elastic/filebeat \
+            -n logging \
+            -f helm/repertoire/elk/filebeat-values.yaml \
+            --wait --timeout 3m || true
+
+      - name: Exposer Kibana (IngressRoute + TLS)
+        if: vars.ELK_ENABLED == 'true'
+        run: |
+          kubectl delete certificate kibana-tls -n logging --ignore-not-found=true --wait=false 2>/dev/null || true
+          sleep 2
+          kubectl apply -f - <<'KIBANAEOF'
+          apiVersion: cert-manager.io/v1
+          kind: Certificate
+          metadata:
+            name: kibana-tls
+            namespace: logging
+          spec:
+            secretName: kibana-tls
+            issuerRef:
+              name: letsencrypt-prod
+              kind: ClusterIssuer
+            dnsNames:
+              - kibana-repertoire.duckdns.org
+          ---
+          apiVersion: traefik.io/v1alpha1
+          kind: IngressRoute
+          metadata:
+            name: kibana
+            namespace: logging
+          spec:
+            entryPoints:
+              - web
+              - websecure
+            routes:
+              - match: Host(`kibana-repertoire.duckdns.org`) && PathPrefix(`/`)
+                kind: Rule
+                services:
+                  - name: kibana-kibana
+                    port: 5601
+            tls:
+              secretName: kibana-tls
+          KIBANAEOF
+
       - name: Install Vault (Phase 7, si VAULT_ENABLED)
         if: vars.VAULT_ENABLED == 'true'
         run: |

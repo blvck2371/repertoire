@@ -79,6 +79,21 @@ Quand activé : MONGODB_URI est stocké dans Vault et injecté dans le backend v
 
 ---
 
+## ELK Stack – Logs (Phase 8)
+
+| Variable GitHub | Valeur | Description |
+|----------------|--------|-------------|
+| ELK_ENABLED | true | Active le déploiement ELK (Elasticsearch, Kibana, Filebeat) |
+
+| Service | URL | Identifiants |
+|---------|-----|--------------|
+| Kibana | https://kibana-repertoire.duckdns.org | — |
+| Elasticsearch | interne (`elasticsearch-master:9200`) | — |
+
+Voir [docs/PHASE8-ELK.md](PHASE8-ELK.md) pour la configuration et l'utilisation.
+
+---
+
 ## Prometheus / Alertmanager
 
 | Service | Accès | Identifiants |
@@ -100,4 +115,5 @@ Ajouter ces sous-domaines (même IP que le cluster) :
 - `grafana-repertoire`
 - `minio-repertoire`
 - `minio-api-repertoire`
+- `kibana-repertoire` *(ELK/Kibana)*
 - `repertoire-harbor` *(Harbor)*

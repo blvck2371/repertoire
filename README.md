@@ -68,8 +68,8 @@
 - [x] Collecte des métriques via Prometheus (kube-prometheus-stack)
 - [x] Dashboards par service via Grafana
 - [x] Alerting proactif (Alertmanager + Slack)
-- [ ] Centralisation des logs avec ELK Stack
-- [ ] Analyse des performances et détection anomalies
+- [x] Centralisation des logs avec ELK Stack (Elasticsearch, Kibana, Filebeat)
+- [x] Analyse des performances et détection anomalies (Kibana Discover + filtres)
 
 ### PHASE 9 – Backups & restauration (Restic + MinIO)
 - [x] Backups quotidiens des données production
@@ -94,10 +94,9 @@
 
 | Priorité | Tâche | Fichier / Action |
 |----------|-------|------------------|
-| 1 | **ELK Stack** (Phase 8) | Centralisation des logs – déployer Elasticsearch, Logstash, Kibana |
-| 2 | **Rotation des secrets Vault** (Phase 7) | Automatiser la rotation de MONGODB_URI |
-| 3 | **Audit trail Vault** (Phase 7) | `vault audit enable file` |
-| 4 | **Haute disponibilité** (Phase 6) | Multi-région, load balancing avancé |
+| 1 | **Rotation des secrets Vault** (Phase 7) | Automatiser la rotation de MONGODB_URI |
+| 2 | **Audit trail Vault** (Phase 7) | `vault audit enable file` |
+| 3 | **Haute disponibilité** (Phase 6) | Multi-région, load balancing avancé |
 
 ---
 
@@ -168,11 +167,12 @@ git push origin develop
 
 **Identifiants :** voir [docs/ACCESS-CREDENTIALS.md](docs/ACCESS-CREDENTIALS.md) pour tous les accès et mots de passe.
 
-## Monitoring (Phase 8)
+## Monitoring & Logs (Phase 8)
 
 | Service | URL | Identifiants |
 |---------|-----|--------------|
 | Grafana | https://grafana-repertoire.duckdns.org | admin / repertoire-monitoring |
+| Kibana (logs) | https://kibana-repertoire.duckdns.org | — |
 | Prometheus | port-forward `svc/kube-prometheus-stack-prometheus 9090:9090` | — |
 | Alertmanager | port-forward `svc/kube-prometheus-stack-alertmanager 9093:9093` | — |
 
