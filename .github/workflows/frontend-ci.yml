@@ -685,7 +685,8 @@ jobs:
       - name: Restart deployments (pull latest images)
         run: |
           kubectl rollout restart deployment -n ${{ steps.env.outputs.namespace }} -l app.kubernetes.io/instance=repertoire
-          kubectl rollout status deployment -n ${{ steps.env.outputs.namespace }} -l app.kubernetes.io/instance=repertoire --timeout=5m
+          kubectl rollout status deployment/repertoire-backend -n ${{ steps.env.outputs.namespace }} --timeout=8m
+          kubectl rollout status deployment/repertoire-frontend -n ${{ steps.env.outputs.namespace }} --timeout=5m
 
   # 8d. Auto-merge : develop → preprod → prod (si pipeline OK)
   # Sur preprod : s'exécute aussi en workflow_dispatch (car preprod est déclenché par API, pas par push)
