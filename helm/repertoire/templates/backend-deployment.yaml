@@ -28,6 +28,14 @@ spec:
         vault.hashicorp.com/agent-inject-secret-mongodb: "secret/data/mongodb"
         vault.hashicorp.com/agent-inject-template-mongodb: |
 {{ .Files.Get "vault-mongodb-template.txt" | nindent 10 }}
+        vault.hashicorp.com/agent-requests-cpu: "25m"
+        vault.hashicorp.com/agent-requests-mem: "32Mi"
+        vault.hashicorp.com/agent-limits-cpu: "50m"
+        vault.hashicorp.com/agent-limits-mem: "64Mi"
+        vault.hashicorp.com/agent-init-requests-cpu: "25m"
+        vault.hashicorp.com/agent-init-requests-mem: "32Mi"
+        vault.hashicorp.com/agent-init-limits-cpu: "50m"
+        vault.hashicorp.com/agent-init-limits-mem: "64Mi"
       {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
